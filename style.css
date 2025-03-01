@@ -185,16 +185,6 @@ button:focus {
   overflow-x: auto;
 }
 
-/* New: Table Container for horizontal scrolling */
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-}
-#budget-table, #budget-table-back {
-  width: 100%;
-  min-width: 800px; /* Adjust this value as needed */
-}
-
 .budget-toggle {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 60px);
@@ -668,3 +658,4 @@ input:checked + .slider:before {
 .flip-card-back {
   transform: rotateY(180deg);
 }
+
