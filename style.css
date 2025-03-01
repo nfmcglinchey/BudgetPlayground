@@ -659,3 +659,11 @@ input:checked + .slider:before {
   transform: rotateY(180deg);
 }
 
+#budget-section {
+  position: relative;
+  max-width: 100%;
+  overflow-x: auto;
+}
+#budget-table {
+  min-width: 800px; /* Adjust as needed */
+}
