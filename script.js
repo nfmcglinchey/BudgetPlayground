@@ -1,4 +1,4 @@
-// Firebase Configuration and Initialization
+/* Firebase Configuration and Initialization :contentReference[oaicite:0]{index=0} */
 const firebaseConfig = {
   apiKey: "AIzaSyA6ZFSK7jPIkiEv47yl8q-O1jh8DNvOsiI",
   authDomain: "budget-data-b9bcc.firebaseapp.com",
@@ -28,7 +28,7 @@ let staticPieChart;
 let staticChartUpdateTimeout = null;
 let staticCategories = [];
 
-/* ================= Utility Functions ================= */
+/* ================= UTILITY FUNCTIONS ================= */
 function isMobile() {
   return ('ontouchstart' in window) || (window.innerWidth <= 768);
 }
@@ -552,7 +552,46 @@ function loadExpenses() {
         cell.appendChild(swipeContent);
         row.appendChild(cell);
         expensesTable.appendChild(row);
+
+        // Attach swipe events
+        let startX = 0, currentX = 0;
+        const threshold = 80;
+        const fullSwipeThreshold = -250;
+        swipeContent.addEventListener("touchstart", function(e) {
+          startX = e.touches[0].clientX;
+          swipeContent.style.transition = "";
+        });
+        swipeContent.addEventListener("touchmove", function(e) {
+          currentX = e.touches[0].clientX;
+          let deltaX = currentX - startX;
+          if (deltaX < 0) {
+            swipeContent.style.transform = `translateX(${deltaX}px)`;
+          }
+        });
+        swipeContent.addEventListener("touchend", function(e) {
+          let deltaX = currentX - startX;
+          if (deltaX < fullSwipeThreshold) {
+            swipeContent.style.transition = "transform 0.3s ease";
+            swipeContent.style.transform = "translateX(-100%)";
+            customConfirm("Swipe delete: Are you sure you want to delete this expense?")
+              .then(confirmed => {
+                if (confirmed) {
+                  deleteExpense(exp.key);
+                } else {
+                  swipeContent.style.transition = "transform 0.3s ease";
+                  swipeContent.style.transform = "translateX(0)";
+                }
+              });
+          } else if (deltaX < -threshold) {
+            swipeContent.style.transition = "transform 0.3s ease";
+            swipeContent.style.transform = "translateX(-160px)";
+          } else {
+            swipeContent.style.transition = "transform 0.3s ease";
+            swipeContent.style.transform = "translateX(0)";
+          }
+        });
       } else {
+        // Desktop version
         const row = document.createElement("tr");
         row.classList.add("expense-swipe");
         const dateCell = document.createElement("td");
@@ -587,7 +626,8 @@ function loadExpenses() {
         });
         actionCell.appendChild(deleteBtn);
         row.appendChild(actionCell);
-        attachSwipeToDeleteOnButton(deleteBtn, row, exp.key);
+        // Optionally attach swipe event helper for desktop if desired:
+        // attachSwipeToDeleteOnButton(deleteBtn, row, exp.key);
         expensesTable.appendChild(row);
       }
     });
@@ -1334,7 +1374,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
   document.getElementById("add-category-button").addEventListener("click", addCategory);
 
-  // Add Manage Categories toggle for front side
+  // Manage Categories toggle (Front)
   document.getElementById('toggle-manage-categories').addEventListener('click', () => {
     const manageCategoriesCard = document.getElementById('manage-categories');
     manageCategoriesCard.style.display = (manageCategoriesCard.style.display === 'none' || manageCategoriesCard.style.display === '')
@@ -1342,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", function () {
       : 'none';
   });
 
-  // Collapsible headers (if any)
+  // Collapsible headers
   document.querySelectorAll('.collapsible-header').forEach(header => {
     header.addEventListener('click', () => {
       const content = header.nextElementSibling;
