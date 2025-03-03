@@ -2,24 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#1d72b8">
   <!-- iOS PWA meta tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.json"><!-- :contentReference[oaicite:4]{index=4} -->
   <title>Budget Tracker</title>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
-  <!-- Manifest for PWA -->
-  <link rel="manifest" href="manifest.json">
   <!-- Main CSS -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css" /><!-- :contentReference[oaicite:5]{index=5} -->
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <!-- Inline additional CSS for flip-card and toggles -->
   <style>
-    /* Flip Card CSS */
+    /* Extra inline styles for the flip card and custom toggles (if not already in style.css) */
     .flip-card {
       perspective: 1000px;
     }
@@ -35,9 +34,8 @@
     .flip-card-back {
       position: absolute;
       width: 100%;
-      top: 0;
-      left: 0;
       backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
     .flip-card-back {
       transform: rotateY(180deg);
@@ -45,18 +43,24 @@
   </style>
 </head>
 <body>
-  <!-- Theme toggle (fixed position) -->
-  <div class="toggle-container theme-toggle">
-    <label class="theme-switch" for="theme-toggle-checkbox">
-      <input type="checkbox" id="theme-toggle-checkbox" />
-      <span class="slider round"></span>
-    </label>
-    <span class="theme-label">Light/ Dark</span>
+  <!-- Notifications -->
+  <div id="notification" role="alert" aria-live="assertive"></div>
+  <div id="notification-back" role="alert" aria-live="assertive"></div>
+
+  <!-- Modal for confirm dialogs -->
+  <div id="modal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <p id="modal-message"></p>
+      <div class="modal-buttons">
+        <button id="modal-confirm">Yes</button>
+        <button id="modal-cancel">No</button>
+      </div>
+    </div>
   </div>
 
   <h1>Budget Tracker</h1>
   
-  <!-- Toggle button to flip between budgets -->
+  <!-- Toggle Containers -->
   <div class="toggle-container budget-toggle">
     <label class="budget-switch" for="budget-toggle-checkbox">
       <input type="checkbox" id="budget-toggle-checkbox" />
@@ -64,27 +68,32 @@
     </label>
     <span class="budget-label">Switch Budget</span>
   </div>
+  <div class="toggle-container theme-toggle">
+    <label class="theme-switch" for="theme-toggle-checkbox">
+      <input type="checkbox" id="theme-toggle-checkbox" />
+      <span class="slider round"></span>
+    </label>
+    <span class="theme-label">Light/Dark</span>
+  </div>
 
   <!-- Flip Card Container -->
   <div class="flip-card" id="budget-flip-card">
     <div class="flip-card-inner">
-      <!-- FRONT SIDE: Discretionary (Current) -->
+      <!-- FRONT SIDE: Discretionary Budget -->
       <div class="flip-card-front">
         <button id="toggle-manage-categories">Manage Categories</button>
-        <div id="notification" role="alert" aria-live="assertive"></div>
         <main role="main">
-          <!-- Manage Categories Section (Front) -->
+          <!-- Manage Categories (Front) -->
           <div id="manage-categories" class="card">
             <h2>Manage Categories</h2>
             <div class="form-group">
-              <input type="text" id="new-category-name" placeholder="New Category Name">
-              <input type="number" id="new-category-monthly" placeholder="Monthly Budget" step="0.01">
+              <input type="text" id="new-category-name" placeholder="New Category Name" />
+              <input type="number" id="new-category-monthly" placeholder="Monthly Budget" step="0.01" />
             </div>
             <button id="add-category-button">Add Category</button>
             <ul id="category-list"></ul>
           </div>
-
-          <!-- Budget Section (Front) -->
+          <!-- Budget Table (Front) -->
           <div id="budget-section" class="card">
             <h2>Budget</h2>
             <table id="budget-table">
@@ -97,7 +106,6 @@
               </tr>
             </table>
           </div>
-
           <!-- Add Expense Section (Front) -->
           <div id="add-expense-section" class="card collapsible">
             <h2 class="collapsible-header">Add Expense</h2>
@@ -122,7 +130,6 @@
               <button id="cancel-edit-button" style="display: none;">Cancel Edit</button>
             </div>
           </div>
-
           <!-- Expenses Section (Front) -->
           <div id="expenses-section" class="card collapsible">
             <h2 class="collapsible-header">Expenses</h2>
@@ -145,7 +152,6 @@
               </table>
             </div>
           </div>
-
           <!-- Charts (Front) -->
           <div id="chart-section" class="card collapsible">
             <h2 class="collapsible-header">Spending Chart</h2>
@@ -165,33 +171,27 @@
           </div>
         </main>
       </div>
-
-      <!-- BACK SIDE: Static (Mirror) -->
+      <!-- BACK SIDE: Static Budget -->
       <div class="flip-card-back">
         <button id="toggle-manage-categories-back">Manage Categories</button>
-        <div id="notification-back" role="alert" aria-live="assertive"></div>
         <main role="main">
-          <!-- Manage Categories Section (Back) -->
+          <!-- Manage Categories (Back) -->
           <div id="manage-categories-back" class="card">
             <h2>Manage Categories</h2>
             <div class="form-group">
-              <input type="text" id="new-category-name-back" placeholder="New Category Name">
-              <input type="number" id="new-category-monthly-back" placeholder="Monthly Budget" step="0.01">
+              <input type="text" id="new-category-name-back" placeholder="New Category Name" />
+              <input type="number" id="new-category-monthly-back" placeholder="Monthly Budget" step="0.01" />
             </div>
             <button id="add-category-button-back">Add Category</button>
             <ul id="category-list-back"></ul>
           </div>
-
-          <!-- Budget Section (Back) -->
+          <!-- Budget Table (Back) -->
           <div id="budget-section-back" class="card">
             <h2>Budget</h2>
             <table id="budget-table-back">
-              <!-- Header will be generated by loadBudgetStatic() -->
+              <!-- Table content will be generated by loadBudgetStatic() -->
             </table>
           </div>
-
-          <!-- Removed "Add Expense" and "Expenses" on the back side -->
-
           <!-- Charts (Back) -->
           <div id="chart-section-back" class="card collapsible">
             <h2 class="collapsible-header">Spending Chart</h2>
@@ -214,42 +214,16 @@
     </div>
   </div>
 
-  <!-- Global Modals -->
-  <div id="modal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <p id="modal-message"></p>
-      <div class="modal-buttons">
-        <button id="modal-confirm">Yes</button>
-        <button id="modal-cancel">No</button>
-      </div>
-    </div>
-  </div>
-  <div id="modal-back" class="modal" style="display: none;">
-    <div class="modal-content">
-      <p id="modal-message-back"></p>
-      <div class="modal-buttons">
-        <button id="modal-confirm-back">Yes</button>
-        <button id="modal-cancel-back">No</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Firebase & Main Scripts -->
+  <!-- Firebase and Main Scripts -->
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-database-compat.js"></script>
-  <script src="script.js" defer></script>
+  <script src="script.js" defer></script><!-- :contentReference[oaicite:6]{index=6} -->
   <script>
-    // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
         .then(registration => console.log('Service Worker registered:', registration.scope))
         .catch(error => console.log('Service Worker registration failed:', error));
     }
-    
-    // Flip Card for budget toggle (if needed)
-    document.getElementById("toggle-budget-side").addEventListener("click", () => {
-      document.getElementById("budget-flip-card").classList.toggle("flip");
-    });
   </script>
 </body>
 </html>
