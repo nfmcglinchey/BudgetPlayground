@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, viewport-fit=cover" />
   <meta name="theme-color" content="#1d72b8">
   <!-- iOS PWA meta tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -45,37 +45,35 @@
   </style>
 </head>
 <body>
-  <!-- Fixed container for the mobile-style theme switch -->
-<div class="toggle-container theme-toggle">
-  <label class="theme-switch" for="theme-toggle-checkbox">
-    <input type="checkbox" id="theme-toggle-checkbox" />
-    <span class="slider round"></span>
-  </label>
-  <span class="theme-label">Light/ Dark</span>
-</div>
+  <!-- Theme toggle (fixed position) -->
+  <div class="toggle-container theme-toggle">
+    <label class="theme-switch" for="theme-toggle-checkbox">
+      <input type="checkbox" id="theme-toggle-checkbox" />
+      <span class="slider round"></span>
+    </label>
+    <span class="theme-label">Light/ Dark</span>
+  </div>
 
   <h1>Budget Tracker</h1>
   
-  <!-- Toggle button to switch between budgets -->
-<div class="toggle-container budget-toggle">
-  <label class="budget-switch" for="budget-toggle-checkbox">
-    <input type="checkbox" id="budget-toggle-checkbox" />
-    <span class="slider round"></span>
-  </label>
-  <span class="budget-label">Switch Budget</span>
-</div>
+  <!-- Toggle button to flip between budgets -->
+  <div class="toggle-container budget-toggle">
+    <label class="budget-switch" for="budget-toggle-checkbox">
+      <input type="checkbox" id="budget-toggle-checkbox" />
+      <span class="slider round"></span>
+    </label>
+    <span class="budget-label">Switch Budget</span>
+  </div>
 
   <!-- Flip Card Container -->
   <div class="flip-card" id="budget-flip-card">
     <div class="flip-card-inner">
-      <!-- Front Side: Discretionary Budget (Current) -->
+      <!-- FRONT SIDE: Discretionary (Current) -->
       <div class="flip-card-front">
-        <!-- Toggle Manage Categories (current) -->
         <button id="toggle-manage-categories">Manage Categories</button>
-        <!-- Notification for current budget -->
         <div id="notification" role="alert" aria-live="assertive"></div>
         <main role="main">
-          <!-- Manage Categories Section -->
+          <!-- Manage Categories Section (Front) -->
           <div id="manage-categories" class="card">
             <h2>Manage Categories</h2>
             <div class="form-group">
@@ -85,7 +83,8 @@
             <button id="add-category-button">Add Category</button>
             <ul id="category-list"></ul>
           </div>
-          <!-- Budget Section -->
+
+          <!-- Budget Section (Front) -->
           <div id="budget-section" class="card">
             <h2>Budget</h2>
             <table id="budget-table">
@@ -98,7 +97,8 @@
               </tr>
             </table>
           </div>
-          <!-- Add Expense Section -->
+
+          <!-- Add Expense Section (Front) -->
           <div id="add-expense-section" class="card collapsible">
             <h2 class="collapsible-header">Add Expense</h2>
             <div class="collapsible-content" style="display: none;">
@@ -122,7 +122,8 @@
               <button id="cancel-edit-button" style="display: none;">Cancel Edit</button>
             </div>
           </div>
-          <!-- Expenses Section -->
+
+          <!-- Expenses Section (Front) -->
           <div id="expenses-section" class="card collapsible">
             <h2 class="collapsible-header">Expenses</h2>
             <div class="collapsible-content" style="display: none;">
@@ -144,7 +145,8 @@
               </table>
             </div>
           </div>
-          <!-- Spending Chart Section -->
+
+          <!-- Charts (Front) -->
           <div id="chart-section" class="card collapsible">
             <h2 class="collapsible-header">Spending Chart</h2>
             <div class="collapsible-content" style="display: none;">
@@ -153,7 +155,6 @@
               </div>
             </div>
           </div>
-          <!-- Pie Chart Section -->
           <div id="pie-chart-section" class="card collapsible">
             <h2 class="collapsible-header">Spending Breakdown</h2>
             <div class="collapsible-content" style="display: none;">
@@ -164,14 +165,13 @@
           </div>
         </main>
       </div>
-      <!-- Back Side: Static Budget (Mirror) -->
+
+      <!-- BACK SIDE: Static (Mirror) -->
       <div class="flip-card-back">
-        <!-- Toggle Manage Categories (static) -->
         <button id="toggle-manage-categories-back">Manage Categories</button>
-        <!-- Notification for static budget -->
         <div id="notification-back" role="alert" aria-live="assertive"></div>
         <main role="main">
-          <!-- Manage Categories Section -->
+          <!-- Manage Categories Section (Back) -->
           <div id="manage-categories-back" class="card">
             <h2>Manage Categories</h2>
             <div class="form-group">
@@ -181,62 +181,18 @@
             <button id="add-category-button-back">Add Category</button>
             <ul id="category-list-back"></ul>
           </div>
-          <!-- Budget Section -->
-	  <!-- Static Budget Section -->
-	  <div id="budget-section-back" class="card">
-  	     <h2>Budget</h2>
-             <table id="budget-table-back">
-   	    <!-- Header will be generated by loadBudgetStatic() -->
-  	 </table>
-	</div>
 
-          <!-- Add Expense Section -->
-          <div id="add-expense-section-back" class="card collapsible">
-            <h2 class="collapsible-header">Add Expense</h2>
-            <div class="collapsible-content" style="display: none;">
-              <div class="form-group">
-                <label for="expense-date-back">Date:</label>
-                <input type="date" id="expense-date-back" />
-              </div>
-              <div class="form-group">
-                <label for="expense-category-back">Category:</label>
-                <select id="expense-category-back"></select>
-              </div>
-              <div class="form-group">
-                <label for="expense-description-back">Description:</label>
-                <input type="text" id="expense-description-back" />
-              </div>
-              <div class="form-group">
-                <label for="expense-amount-back">Amount:</label>
-                <input type="text" id="expense-amount-back" inputmode="decimal" placeholder="$0.00" />
-              </div>
-              <button id="add-expense-button-back">Add Expense</button>
-              <button id="cancel-edit-button-back" style="display: none;">Cancel Edit</button>
-            </div>
+          <!-- Budget Section (Back) -->
+          <div id="budget-section-back" class="card">
+            <h2>Budget</h2>
+            <table id="budget-table-back">
+              <!-- Header will be generated by loadBudgetStatic() -->
+            </table>
           </div>
-          <!-- Expenses Section -->
-          <div id="expenses-section-back" class="card collapsible">
-            <h2 class="collapsible-header">Expenses</h2>
-            <div class="collapsible-content" style="display: none;">
-              <div class="filters">
-                <label for="filter-month-back">Month:</label>
-                <select id="filter-month-back"></select>
-                <label for="filter-year-back">Year:</label>
-                <select id="filter-year-back"></select>
-                <button id="toggle-expenses-button-back">Show All</button>
-              </div>
-              <table id="expenses-table-back">
-                <tr>
-                  <th>Date</th>
-                  <th>Category</th>
-                  <th>Description</th>
-                  <th>Amount</th>
-                  <th>Action</th>
-                </tr>
-              </table>
-            </div>
-          </div>
-          <!-- Spending Chart Section -->
+
+          <!-- Removed "Add Expense" and "Expenses" on the back side -->
+
+          <!-- Charts (Back) -->
           <div id="chart-section-back" class="card collapsible">
             <h2 class="collapsible-header">Spending Chart</h2>
             <div class="collapsible-content" style="display: none;">
@@ -245,7 +201,6 @@
               </div>
             </div>
           </div>
-          <!-- Pie Chart Section -->
           <div id="pie-chart-section-back" class="card collapsible">
             <h2 class="collapsible-header">Spending Breakdown</h2>
             <div class="collapsible-content" style="display: none;">
@@ -259,7 +214,7 @@
     </div>
   </div>
 
-  <!-- Global Modals (placed outside the flip-card to ensure they render on top) -->
+  <!-- Global Modals -->
   <div id="modal" class="modal" style="display: none;">
     <div class="modal-content">
       <p id="modal-message"></p>
@@ -279,7 +234,7 @@
     </div>
   </div>
 
-  <!-- Firebase and Main JS Scripts -->
+  <!-- Firebase & Main Scripts -->
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-database-compat.js"></script>
   <script src="script.js" defer></script>
@@ -287,11 +242,11 @@
     // Register service worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
-      .then(registration => console.log('Service Worker registered with scope:', registration.scope))
-      .catch(error => console.log('Service Worker registration failed:', error));
+        .then(registration => console.log('Service Worker registered:', registration.scope))
+        .catch(error => console.log('Service Worker registration failed:', error));
     }
     
-    // Toggle flip for switching budgets
+    // Flip Card for budget toggle (if needed)
     document.getElementById("toggle-budget-side").addEventListener("click", () => {
       document.getElementById("budget-flip-card").classList.toggle("flip");
     });
