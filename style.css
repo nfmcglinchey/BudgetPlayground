@@ -11,6 +11,639 @@
   --notification-bg: #1d72b8;
   --modal-bg: #fff;
 }
+/* Define Theme Variables */
+:root {
+  /* Light theme variables */
+  --bg-color: #f0f2f5;
+  --text-color: #333;
+  --card-bg: #fff;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  --accent-color: #1d72b8;
+  --accent-hover: #155d8a;
+  --border-color: #ddd;
+  --notification-bg: #1d72b8;
+  --modal-bg: #fff;
+}
+
+/* Dark mode variables */
+body.dark-mode {
+  --bg-color: #121212;
+  --text-color: #e0e0e0;
+  --card-bg: #1e1e1e;
+  --card-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  --accent-color: #1d72b8;
+  --accent-hover: #3a8edb;
+  --border-color: #555;
+  --notification-bg: #333;
+  --modal-bg: #1e1e1e;
+}
+
+/* General Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* Prevent background scrolling when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Headings */
+h1, h2 {
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Notification Styles */
+#notification,
+#notification-back {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: var(--notification-bg);
+  color: var(--text-color);
+  padding: 10px 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  border: 1px solid var(--border-color);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  z-index: 1000;
+}
+#notification.show,
+#notification-back.show {
+  opacity: 1;
+}
+
+/* Card Containers */
+.card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+  border-radius: 8px;
+  box-shadow: var(--card-shadow);
+  margin: 20px auto;
+  padding: 20px;
+  max-width: 960px;
+  border: 1px solid var(--border-color);
+}
+
+/* Manage Categories sections hidden by default */
+#manage-categories,
+#manage-categories-back {
+  display: none;
+}
+
+/* Toggle Button for Manage Categories */
+#toggle-manage-categories,
+#toggle-manage-categories-back {
+  background: #e2e2e2;
+  color: #333;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  padding: 6px 12px;
+  margin: 10px auto;
+  display: block;
+  cursor: pointer;
+}
+#toggle-manage-categories:hover,
+#toggle-manage-categories-back:hover {
+  background: #d2d2d2;
+}
+
+/* Filters */
+.filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.filters #toggle-expenses-button {
+  margin-top: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 12px;
+  font-size: 14px;
+  border-radius: 4px;
+  line-height: normal;
+}
+
+/* Form Group */
+.form-group {
+  margin: 10px auto;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Form Fields */
+input,
+select {
+  padding: 8px;
+  font-size: 16px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+
+/* Button Styles */
+button {
+  padding: 8px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--accent-color);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin-top: 10px;
+}
+button:hover {
+  background-color: var(--accent-hover);
+}
+button:active {
+  transform: scale(0.98);
+}
+button:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Table Containers */
+#budget-section,
+#expenses-section,
+#budget-section-back,
+#expenses-section-back {
+  overflow-x: auto;
+}
+
+/* Fixed Toggle Container for theme & budget switches */
+.toggle-container {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 60px);
+  z-index: 1000;
+}
+.theme-toggle {
+  right: 10px;
+  width: 50px;
+  height: 24px;
+}
+.budget-toggle {
+  left: 10px;
+  width: 50px;
+  height: 24px;
+}
+
+/* Custom Toggle Switch Styles */
+.theme-switch,
+.budget-switch {
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  position: relative;
+}
+.theme-switch input,
+.budget-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--accent-color);
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
+.theme-label,
+.budget-label {
+  font-size: 14px;
+  color: var(--text-color);
+}
+
+/* Flip Card Styles */
+.flip-card {
+  perspective: 1000px;
+}
+.flip-card-inner {
+  position: relative;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+.flip-card.flip .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  width: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  table-layout: auto;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 14px;
+  vertical-align: middle;
+  color: var(--text-color);
+}
+th {
+  background-color: #f1f1f1;
+  font-weight: 500;
+}
+th:nth-child(2),
+td:nth-child(2),
+th:nth-child(3),
+td:nth-child(3),
+th:nth-child(4),
+td:nth-child(4),
+th:nth-child(5),
+td:nth-child(5) {
+  text-align: center;
+}
+
+/* Sticky Columns */
+#budget-table th:nth-child(1),
+#budget-table td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 0;
+  background-color: var(--card-bg);
+  border-right: none !important;
+}
+#expenses-table th:nth-child(2),
+#expenses-table td:nth-child(2) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  font-weight: 600;
+  border-right: 2px solid #ddd;
+}
+
+/* Hover Effect */
+tr:hover {
+  background-color: #f8f8f8;
+}
+
+/* Budget Status Colors */
+.over-budget {
+  background-color: #ff3b30 !important;
+}
+.near-budget {
+  background-color: #fff8c4 !important;
+}
+.under-budget {
+  background-color: #34c759 !important;
+}
+
+/* Highlight Animation */
+.highlight-week {
+  outline: 2px solid #ff0;
+}
+
+/* Chart Container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  margin: 0 auto;
+}
+@media (max-width: 768px) and (orientation: portrait) {
+  .chart-container {
+    height: 300px;
+  }
+}
+@media (max-width: 768px) and (orientation: landscape) {
+  .chart-container {
+    height: 400px;
+  }
+}
+
+/* Mobile Adjustments */
+@media screen and (max-width: 768px) {
+  button {
+    padding: 12px;
+    font-size: 18px;
+  }
+  th, td {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  #budget-table th:nth-child(1),
+  #budget-table td:nth-child(1),
+  #expenses-table th:nth-child(2),
+  #expenses-table td:nth-child(2) {
+    max-width: 180px;
+  }
+  table {
+    min-width: 100%;
+  }
+}
+
+/* Total Row */
+.total-row {
+  font-weight: bold;
+  background-color: #f0f0f0;
+}
+body.dark-mode .total-row {
+  background-color: #2a2a2a !important;
+}
+
+/* Editing Mode for Add Expense Section */
+#add-expense-section.editing-mode {
+  border: 2px solid #ff9900;
+  box-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
+  animation: pulse 1.5s infinite alternate;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 10px rgba(255, 153, 0, 0.5); }
+  100% { box-shadow: 0 0 15px rgba(255, 153, 0, 0.8); }
+}
+
+/* Manage Categories Styles */
+#manage-categories .form-group,
+#manage-categories-back .form-group {
+  margin: 10px auto;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+}
+#new-category-name,
+#new-category-monthly,
+#new-category-name-back,
+#new-category-monthly-back {
+  width: 100%;
+  box-sizing: border-box;
+}
+#category-list,
+#category-list-back {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#category-list li,
+#category-list-back li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+#category-list li button,
+#category-list-back li button {
+  width: 80px;
+  margin-top: 0;
+}
+
+/* Collapsible Sections */
+.collapsible-header {
+  position: relative;
+  cursor: pointer;
+  margin-bottom: 0;
+  padding-bottom: 10px;
+}
+.collapsible-header::after {
+  content: "▶";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s ease;
+  font-size: 16px;
+  color: #666;
+}
+.collapsible-header.expanded::after {
+  transform: translateY(-50%) rotate(90deg);
+}
+.collapsible-content {
+  display: none;
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  z-index: 2000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background-color: var(--modal-bg);
+  color: var(--text-color);
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.modal-buttons {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+
+/* Desktop Table Action Buttons */
+#expenses-table td:nth-child(5) {
+  text-align: center;
+  white-space: nowrap;
+}
+#expenses-table td:nth-child(5) button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 36px;
+  margin: 4px;
+  box-sizing: border-box;
+}
+
+/* Add Expense Section Buttons */
+#add-expense-section {
+  text-align: center;
+}
+#add-expense-button,
+#cancel-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 36px;
+  margin: 4px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+@media (max-width: 480px) {
+  #add-expense-button,
+  #cancel-edit-button {
+    width: 100%;
+    margin: 6px auto;
+  }
+}
+
+/* Swipe-to-Delete for Mobile */
+.expense-swipe td {
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+  height: 44px;
+}
+.swipe-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  background-color: #fff;
+  transition: transform 0.3s ease;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  height: 44px;
+  box-sizing: border-box;
+}
+body.dark-mode .swipe-content {
+  background-color: #2a2a2a;
+  color: var(--text-color);
+}
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 160px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+.swipe-actions .swipe-edit,
+.swipe-actions .swipe-delete {
+  width: 80px;
+  height: 44px;
+  margin: 0;
+  border: none;
+  color: #fff;
+  border-radius: 0;
+}
+.swipe-actions .swipe-edit {
+  background-color: gray;
+}
+.swipe-actions .swipe-delete {
+  background-color: #ff3b30;
+}
+.expense-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+.swipe-delete-ready {
+  background-color: rgba(255, 59, 48, 0.2);
+}
+
+/* Mobile Specific Overrides */
+@media screen and (max-width: 768px) {
+  #expenses-table tr:first-child {
+    display: none;
+  }
+  .swipe-actions button {
+    border-radius: 0 !important;
+  }
+}
+@media screen and (orientation: landscape) and (max-width: 1024px) {
+  #expenses-table tr:first-child {
+    display: none;
+  }
+}
+
+/* Dark Mode Overrides */
+body.dark-mode {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+body.dark-mode .card {
+  background-color: var(--card-bg);
+  color: var(--text-color);
+}
+body.dark-mode #notification {
+  background-color: var(--notification-bg);
+  color: var(--text-color);
+}
+body.dark-mode table,
+body.dark-mode th,
+body.dark-mode td {
+  background-color: #2a2a2a;
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+body.dark-mode th {
+  background-color: #3a3a3a;
+}
+body.dark-mode tr:hover {
+  background-color: #3a3a3a;
+}
+body.dark-mode .over-budget {
+  background-color: #ff3b30 !important;
+  color: #fff;
+}
+body.dark-mode .near-budget {
+  background-color: #ffcc00 !important;
+  color: #000;
+}
+body.dark-mode .under-budget {
+  background-color: #34c759 !important;
+  color: #fff;
+}
 
 body.dark-mode {
   /* Dark theme variables */
