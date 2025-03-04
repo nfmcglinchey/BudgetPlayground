@@ -78,6 +78,16 @@ h1, h2 {
   border: 1px solid var(--border-color);
 }
 
+/* Weekly Summary Card - New */
+#weekly-summary {
+  text-align: center;
+}
+#weekly-summary p {
+  font-size: 18px;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
 /* Manage Categories sections hidden by default */
 #manage-categories,
 #manage-categories-back {
@@ -243,7 +253,7 @@ input:checked + .slider:before {
   width: 60px;
   height: 60px;
   cursor: pointer;
-  perspective: 1000px; /* for 3D flip */
+  perspective: 1000px;
 }
 .coin-container img {
   width: 100%;
