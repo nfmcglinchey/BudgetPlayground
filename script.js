@@ -1,4 +1,4 @@
-/* Firebase Configuration and Initialization :contentReference[oaicite:0]{index=0} */
+/* Firebase Configuration and Initialization */
 const firebaseConfig = {
   apiKey: "AIzaSyA6ZFSK7jPIkiEv47yl8q-O1jh8DNvOsiI",
   authDomain: "budget-data-b9bcc.firebaseapp.com",
@@ -164,8 +164,10 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotification("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -250,8 +252,10 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotification("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -626,8 +630,6 @@ function loadExpenses() {
         });
         actionCell.appendChild(deleteBtn);
         row.appendChild(actionCell);
-        // Optionally attach swipe event helper for desktop if desired:
-        // attachSwipeToDeleteOnButton(deleteBtn, row, exp.key);
         expensesTable.appendChild(row);
       }
     });
@@ -886,62 +888,6 @@ function updatePieChart() {
   }
 }
 
-function attachSwipeToDeleteOnButton(deleteBtn, row, expenseId) {
-  let touchStartX = 0;
-  let touchDeltaX = 0;
-  let dragging = false;
-  const threshold = 100;
-  deleteBtn.addEventListener('touchstart', function(e) {
-    touchStartX = e.changedTouches[0].screenX;
-    dragging = false;
-    row.style.transition = '';
-  });
-  deleteBtn.addEventListener('touchmove', function(e) {
-    const currentX = e.changedTouches[0].screenX;
-    touchDeltaX = currentX - touchStartX;
-    if (Math.abs(touchDeltaX) > 10) {
-      dragging = true;
-    }
-    if (touchDeltaX < 0) {
-      row.style.transform = `translateX(${touchDeltaX}px)`;
-      if (Math.abs(touchDeltaX) > threshold) {
-        if (!row.classList.contains("swipe-delete-ready")) {
-          row.classList.add("swipe-delete-ready");
-          if (window.navigator.vibrate) {
-            window.navigator.vibrate(50);
-          }
-        }
-      } else {
-        row.classList.remove("swipe-delete-ready");
-      }
-    }
-  });
-  deleteBtn.addEventListener('touchend', function(e) {
-    if (dragging && Math.abs(touchDeltaX) > threshold) {
-      row.style.transition = 'transform 0.2s ease-out';
-      row.style.transform = 'translateX(-100%)';
-      setTimeout(() => {
-        customConfirm("Swipe delete: Are you sure you want to delete this expense?")
-          .then(confirmed => {
-            if (confirmed) {
-              deleteExpense(expenseId);
-            } else {
-              row.style.transition = 'transform 0.2s ease-out';
-              row.style.transform = 'translateX(0)';
-              row.classList.remove("swipe-delete-ready");
-            }
-          });
-      }, 200);
-    } else {
-      row.style.transition = 'transform 0.2s ease-out';
-      row.style.transform = 'translateX(0)';
-      row.classList.remove("swipe-delete-ready");
-    }
-    dragging = false;
-    touchDeltaX = 0;
-  });
-}
-
 /* ================= BACK SIDE Functions (Static Budget) ================= */
 async function loadCategoriesStatic() {
   try {
@@ -1005,8 +951,10 @@ function renderCategoryListStatic() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotificationStatic("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -1091,8 +1039,10 @@ function renderCategoryListStatic() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotificationStatic("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -1188,6 +1138,7 @@ function loadBudgetStatic() {
   const totalAnnual = totalMonthly * 12;
   const totalWeekly = totalMonthly * 12 / 52;
   const totalRow = budgetTable.insertRow();
+
   totalRow.innerHTML = `
     <td><strong>Total</strong></td>
     <td><strong>$${totalAnnual.toFixed(2)}</strong></td>
@@ -1280,11 +1231,6 @@ function initializeChartStatic() {
           label: "Weekly Budget",
           data: [],
           backgroundColor: isDark ? "#1d72b8" : "#1D72B8",
-        },
-        {
-          label: "Actual Spending",
-          data: [],
-          backgroundColor: isDark ? "#ff3b30" : "#FF3B30",
         }
       ]
     },
@@ -1327,7 +1273,7 @@ function initializePieChartStatic() {
 
 /* ================= DOMContentLoaded & Event Listeners ================= */
 document.addEventListener("DOMContentLoaded", function () {
-  // Theme toggle
+  // THEME TOGGLE (unchanged)
   const themeCheckbox = document.getElementById('theme-toggle-checkbox');
   if (!localStorage.getItem('theme')) {
     document.body.classList.add('dark-mode');
@@ -1347,9 +1293,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Budget flip card toggle
-  document.getElementById("budget-toggle-checkbox").addEventListener("change", (e) => {
-    document.getElementById("budget-flip-card").classList.toggle("flip", e.target.checked);
+  // COIN CLICK -> Flip coin image + flip budget card
+  let isCoinHeads = true;
+  const coinFlipDiv = document.getElementById('coin-flip');
+  const coinImage = document.getElementById('coin-image');
+
+  coinFlipDiv.addEventListener('click', () => {
+    // Visually flip the coin
+    coinFlipDiv.classList.toggle('flip');
+    // Swap heads/tails image
+    if (isCoinHeads) {
+      coinImage.src = 'coin-tails.png';
+    } else {
+      coinImage.src = 'coin-heads.png';
+    }
+    isCoinHeads = !isCoinHeads;
+
+    // Flip the card
+    document.getElementById("budget-flip-card").classList.toggle("flip");
   });
 
   // FRONT SIDE initialization
@@ -1409,3 +1370,4 @@ document.addEventListener("DOMContentLoaded", function () {
   initializePieChartStatic();
   loadBudgetStatic();
 });
+
