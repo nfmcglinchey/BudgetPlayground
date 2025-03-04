@@ -639,13 +639,13 @@ body.dark-mode .under-budget {
   display: block;
 }
 
-/* New Table Scroll Wrapper */
+/* New Table Scroll Wrapper for iOS */
 .table-scroll-wrapper {
-  max-width: 100%;           /* ensure it doesn't exceed the card's width */
-  overflow-x: auto;
+  max-width: 100%;           /* contained within the card */
+  overflow-x: scroll;        /* force horizontal scrolling */
   -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
   box-sizing: border-box;
-  border: 1px solid var(--border-color); /* optional, for visual containment */
+  border: 1px solid var(--border-color); /* optional visual containment */
   border-radius: 4px;
   margin-top: 10px;
 }
