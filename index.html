@@ -58,8 +58,6 @@
       right: 0;
     }
 
-    /* Removed .income-slide-toggle button styling, since we’re not using it */
-
     /* Position coin top-right */
     .coin-container {
       position: absolute;
@@ -170,15 +168,11 @@
           <!-- Budget Table (Front) -->
           <div id="budget-section" class="card">
             <h2>Budget</h2>
-            <table id="budget-table">
-              <tr>
-                <th>Category</th>
-                <th>Monthly Budget</th>
-                <th>Weekly Budget</th>
-                <th>Actual (Month)</th>
-                <th>Actual (Week)</th>
-              </tr>
-            </table>
+            <div class="table-scroll-wrapper">
+              <table id="budget-table">
+                <!-- Table rows will be populated dynamically -->
+              </table>
+            </div>
           </div>
           <!-- Add Expense Section (Front) -->
           <div id="add-expense-section" class="card collapsible">
@@ -262,7 +256,11 @@
           <!-- Budget Table (Back) -->
           <div id="budget-section-back" class="card">
             <h2>Budget</h2>
-            <table id="budget-table-back"></table>
+            <div class="table-scroll-wrapper">
+              <table id="budget-table-back">
+                <!-- Static budget table rows will be populated dynamically -->
+              </table>
+            </div>
           </div>
           <!-- Charts (Back) -->
           <div id="chart-section-back" class="card collapsible">
