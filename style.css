@@ -654,8 +654,3 @@ body.dark-mode .under-budget {
   min-width: 600px;  /* adjust based on your table's columns */
   border-collapse: collapse;
 }
-
-/* NEW: Force front side into its own layer */
-.flip-card-front {
-  transform: translateZ(0);
-}
