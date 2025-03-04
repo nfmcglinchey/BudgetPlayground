@@ -28,6 +28,10 @@ let staticPieChart;
 let staticChartUpdateTimeout = null;
 let staticCategories = [];
 
+// NEW GLOBALS FOR WEEKLY SUMMARY
+let weeklyIncome = 0;
+let weeklyExpenses = 0;
+
 /* ================= UTILITY FUNCTIONS ================= */
 function isMobile() {
   return ('ontouchstart' in window) || (window.innerWidth <= 768);
@@ -98,6 +102,25 @@ function customConfirm(message) {
     confirmBtn.addEventListener("click", onConfirm);
     cancelBtn.addEventListener("click", onCancel);
   });
+}
+
+/* ================= NEW: Weekly Summary Update Function ================= */
+// Now combines dynamic (front) expenses and static (back) expenses.
+function updateWeeklySummary() {
+  // Calculate static weekly expenses based on staticCategories
+  let staticWeekly = 0;
+  if (staticCategories && staticCategories.length > 0) {
+    staticCategories.forEach(cat => {
+      staticWeekly += parseFloat(cat.monthly) * 12 / 52;
+    });
+  }
+  // Combine dynamic weekly expenses (set via updateTotalRow) with static weekly expenses
+  const combinedWeeklyExpenses = weeklyExpenses + staticWeekly;
+  
+  document.getElementById("weekly-income").textContent = "Income: $" + weeklyIncome.toFixed(2);
+  document.getElementById("weekly-expenses").textContent = "Expenses: $" + combinedWeeklyExpenses.toFixed(2);
+  const net = weeklyIncome - combinedWeeklyExpenses;
+  document.getElementById("net-weekly").textContent = "Net: $" + net.toFixed(2);
 }
 
 /* ================= FRONT SIDE Functions (Discretionary Budget) ================= */
@@ -748,6 +771,9 @@ function updateTotalRow() {
   totalRow.cells[3].innerHTML = `<strong>$${totalMonthActual.toFixed(2)}</strong>`;
   totalRow.cells[4].innerHTML = `<strong>$${totalWeekActual.toFixed(2)}</strong>`;
   highlightCell(totalRow.cells[4]);
+
+  weeklyExpenses = totalWeekActual;
+  updateWeeklySummary();
 }
 
 function highlightCell(cell) {
@@ -1304,7 +1330,7 @@ function initializeChartStatic() {
           backgroundColor: isDark ? "#1d72b8" : "#1D72B8",
         },
         {
-          label: "Placeholder", // So it doesn't break the bar chart layout
+          label: "Placeholder",
           data: [],
           backgroundColor: isDark ? "#ff3b30" : "#FF3B30",
         }
@@ -1348,7 +1374,6 @@ function initializePieChartStatic() {
 }
 
 /* ================= Collapsible Headers for Both Sides ================= */
-// Ensures charts update after the container is visible
 document.querySelectorAll('.collapsible-header').forEach(header => {
   header.addEventListener('click', () => {
     const content = header.nextElementSibling;
@@ -1356,7 +1381,6 @@ document.querySelectorAll('.collapsible-header').forEach(header => {
       content.style.display = "block";
       header.classList.add("expanded");
 
-      // If this header belongs to the back-side Spending Breakdown section, update chart after a delay
       if (header.parentElement && header.parentElement.id === "pie-chart-section-back") {
         setTimeout(() => {
           if (staticPieChart) {
@@ -1442,4 +1466,60 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeChartStatic();
   initializePieChartStatic();
   loadBudgetStatic();
+  
+  // New Take-Home Income Initialization
+  const incomeVariability = document.getElementById("income-variability");
+  if (incomeVariability) {
+    incomeVariability.addEventListener("change", function() {
+      const mode = this.value;
+      if (mode === "constant") {
+        document.getElementById("constant-income-section").style.display = "block";
+      } else {
+        document.getElementById("constant-income-section").style.display = "none";
+        if (isPayday()) {
+          promptForVariableIncome();
+        }
+      }
+    });
+  }
+  
+  const editConstantIncomeBtn = document.getElementById("edit-constant-income");
+  if (editConstantIncomeBtn) {
+    editConstantIncomeBtn.addEventListener("click", function() {
+      const newIncome = prompt("Enter your new constant take-home amount:");
+      if (newIncome && !isNaN(parseFloat(newIncome))) {
+        const value = parseFloat(newIncome);
+        document.getElementById("constant-income").value = value.toFixed(2);
+        weeklyIncome = value;
+        console.log("Constant Income updated to: $" + value.toFixed(2));
+        updateWeeklySummary();
+      }
+    });
+  }
+
+  // NEW: Direct update of income when the input value changes
+  document.getElementById("constant-income").addEventListener("change", function() {
+    const value = parseFloat(this.value);
+    if (!isNaN(value)) {
+      weeklyIncome = value;
+      updateWeeklySummary();
+    }
+  });
 });
+
+function isPayday() {
+  // Example logic: assume payday is every Friday (day 5)
+  const today = new Date();
+  return today.getDay() === 5;
+}
+
+function promptForVariableIncome() {
+  const income = prompt("Enter today's take-home amount:");
+  if (income && !isNaN(parseFloat(income))) {
+    const value = parseFloat(income);
+    weeklyIncome = value;
+    console.log("Variable Income for Payday: $" + value.toFixed(2));
+    updateWeeklySummary();
+    // Optionally, save this income value to your database or local storage.
+  }
+}
