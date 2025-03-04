@@ -76,9 +76,10 @@ h1, h2 {
   padding: 20px;
   max-width: 960px;
   border: 1px solid var(--border-color);
+  box-sizing: border-box;
 }
 
-/* Weekly Summary Card - New */
+/* Weekly Summary Card */
 #weekly-summary {
   text-align: center;
 }
@@ -173,15 +174,7 @@ button:focus {
   outline-offset: 2px;
 }
 
-/* Table Containers */
-#budget-section,
-#expenses-section,
-#budget-section-back,
-#expenses-section-back {
-  overflow-x: auto;
-}
-
-/* THEME TOGGLE ONLY (top-left) */
+/* THEME TOGGLE (top-left) */
 .toggle-container.theme-toggle {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 10px);
@@ -209,7 +202,6 @@ button:focus {
   transition: 0.4s;
   border-radius: 34px;
 }
-/* Default knob for theme switch */
 .slider:before {
   content: "☀";
   color: #FFC107;
@@ -293,24 +285,6 @@ td:nth-child(4),
 th:nth-child(5),
 td:nth-child(5) {
   text-align: center;
-}
-
-/* Sticky Columns (optional) */
-#budget-table th:nth-child(1),
-#budget-table td:nth-child(1) {
-  position: sticky;
-  left: 0;
-  z-index: 0;
-  background-color: var(--card-bg);
-  border-right: none !important;
-}
-#expenses-table th:nth-child(2),
-#expenses-table td:nth-child(2) {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  font-weight: 600;
-  border-right: 2px solid #ddd;
 }
 
 /* Hover Effect */
@@ -663,4 +637,20 @@ body.dark-mode .under-budget {
   width: 100%;
   height: auto;
   display: block;
+}
+
+/* New Table Scroll Wrapper */
+.table-scroll-wrapper {
+  max-width: 100%;           /* ensure it doesn't exceed the card's width */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
+  box-sizing: border-box;
+  border: 1px solid var(--border-color); /* optional, for visual containment */
+  border-radius: 4px;
+  margin-top: 10px;
+}
+.table-scroll-wrapper table {
+  width: 100%;
+  min-width: 600px;  /* adjust based on your table's columns */
+  border-collapse: collapse;
 }
