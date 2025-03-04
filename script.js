@@ -164,10 +164,8 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (
-            newName.toLowerCase() !== cat.name.toLowerCase() &&
-            budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
-          ) {
+          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
+              budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
             showNotification("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -252,10 +250,8 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (
-            newName.toLowerCase() !== cat.name.toLowerCase() &&
-            budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
-          ) {
+          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
+              budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
             showNotification("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -557,7 +553,6 @@ function loadExpenses() {
         row.appendChild(cell);
         expensesTable.appendChild(row);
 
-        // Attach swipe events
         let startX = 0, currentX = 0;
         const threshold = 80;
         const fullSwipeThreshold = -250;
@@ -595,7 +590,6 @@ function loadExpenses() {
           }
         });
       } else {
-        // Desktop version
         const row = document.createElement("tr");
         row.classList.add("expense-swipe");
         const dateCell = document.createElement("td");
@@ -951,10 +945,8 @@ function renderCategoryListStatic() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (
-            newName.toLowerCase() !== cat.name.toLowerCase() &&
-            staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
-          ) {
+          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
+              staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
             showNotificationStatic("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -1039,10 +1031,8 @@ function renderCategoryListStatic() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (
-            newName.toLowerCase() !== cat.name.toLowerCase() &&
-            staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
-          ) {
+          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
+              staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
             showNotificationStatic("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -1138,7 +1128,6 @@ function loadBudgetStatic() {
   const totalAnnual = totalMonthly * 12;
   const totalWeekly = totalMonthly * 12 / 52;
   const totalRow = budgetTable.insertRow();
-
   totalRow.innerHTML = `
     <td><strong>Total</strong></td>
     <td><strong>$${totalAnnual.toFixed(2)}</strong></td>
@@ -1174,6 +1163,41 @@ function addCategoryStatic() {
     });
 }
 
+/* ================= Coin Flip & Card Collapse ================= */
+let isCoinHeads = true;
+const coinFlipDiv = document.getElementById('coin-flip');
+const coinImage = document.getElementById('coin-image');
+
+coinFlipDiv.addEventListener('click', () => {
+  coinFlipDiv.classList.toggle('flip');
+  if (isCoinHeads) {
+    coinImage.src = 'coin-tails.png';
+  } else {
+    coinImage.src = 'coin-heads.png';
+  }
+  isCoinHeads = !isCoinHeads;
+
+  const flipCard = document.getElementById("budget-flip-card");
+  flipCard.classList.toggle("flip");
+
+  if (flipCard.classList.contains("flip")) {
+    document.querySelectorAll('.flip-card-front .collapsible-content').forEach(content => {
+      content.style.display = "none";
+    });
+    document.querySelectorAll('.flip-card-front .collapsible-header').forEach(header => {
+      header.classList.remove("expanded");
+    });
+  } else {
+    document.querySelectorAll('.flip-card-back .collapsible-content').forEach(content => {
+      content.style.display = "none";
+    });
+    document.querySelectorAll('.flip-card-back .collapsible-header').forEach(header => {
+      header.classList.remove("expanded");
+    });
+  }
+});
+
+/* ================= Chart Functions for Back Side ================= */
 function updateChartStatic() {
   const budgetTable = document.getElementById("budget-table-back");
   if (!budgetTable) return;
@@ -1271,9 +1295,34 @@ function initializePieChartStatic() {
   });
 }
 
+/* ================= Collapsible Headers for Both Sides ================= */
+// Updated collapsible header handler for ensuring charts update when their container is visible
+document.querySelectorAll('.collapsible-header').forEach(header => {
+  header.addEventListener('click', () => {
+    const content = header.nextElementSibling;
+    if (content.style.display === "none" || content.style.display === "") {
+      content.style.display = "block";
+      header.classList.add("expanded");
+
+      // If this header belongs to the back-side Spending Breakdown section, update the chart after a delay
+      if (header.parentElement && header.parentElement.id === "pie-chart-section-back") {
+        setTimeout(() => {
+          if (staticPieChart) {
+            staticPieChart.resize();
+            staticPieChart.update();
+          }
+        }, 300); // Delay to ensure container is visible
+      }
+    } else {
+      content.style.display = "none";
+      header.classList.remove("expanded");
+    }
+  });
+});
+
 /* ================= DOMContentLoaded & Event Listeners ================= */
 document.addEventListener("DOMContentLoaded", function () {
-  // THEME TOGGLE (unchanged)
+  // Theme toggle
   const themeCheckbox = document.getElementById('theme-toggle-checkbox');
   if (!localStorage.getItem('theme')) {
     document.body.classList.add('dark-mode');
@@ -1291,26 +1340,6 @@ document.addEventListener("DOMContentLoaded", function () {
       document.body.classList.remove('dark-mode');
       localStorage.setItem('theme', 'light');
     }
-  });
-
-  // COIN CLICK -> Flip coin image + flip budget card
-  let isCoinHeads = true;
-  const coinFlipDiv = document.getElementById('coin-flip');
-  const coinImage = document.getElementById('coin-image');
-
-  coinFlipDiv.addEventListener('click', () => {
-    // Visually flip the coin
-    coinFlipDiv.classList.toggle('flip');
-    // Swap heads/tails image
-    if (isCoinHeads) {
-      coinImage.src = 'coin-tails.png';
-    } else {
-      coinImage.src = 'coin-heads.png';
-    }
-    isCoinHeads = !isCoinHeads;
-
-    // Flip the card
-    document.getElementById("budget-flip-card").classList.toggle("flip");
   });
 
   // FRONT SIDE initialization
@@ -1343,20 +1372,6 @@ document.addEventListener("DOMContentLoaded", function () {
       : 'none';
   });
 
-  // Collapsible headers
-  document.querySelectorAll('.collapsible-header').forEach(header => {
-    header.addEventListener('click', () => {
-      const content = header.nextElementSibling;
-      if (content.style.display === "none" || content.style.display === "") {
-        content.style.display = "block";
-        header.classList.add("expanded");
-      } else {
-        content.style.display = "none";
-        header.classList.remove("expanded");
-      }
-    });
-  });
-
   // BACK SIDE initialization
   loadCategoriesStatic();
   document.getElementById('toggle-manage-categories-back').addEventListener('click', () => {
@@ -1370,4 +1385,3 @@ document.addEventListener("DOMContentLoaded", function () {
   initializePieChartStatic();
   loadBudgetStatic();
 });
-
