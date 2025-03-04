@@ -1,4 +1,6 @@
-/* Firebase Configuration and Initialization */
+// :contentReference[oaicite:1]{index=1}
+
+// Firebase Configuration and Initialization
 const firebaseConfig = {
   apiKey: "AIzaSyA6ZFSK7jPIkiEv47yl8q-O1jh8DNvOsiI",
   authDomain: "budget-data-b9bcc.firebaseapp.com",
@@ -12,7 +14,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* ================= Global Variables ================= */
+// Global Variables
 // FRONT SIDE (Discretionary Budget)
 let expensesListener = null;
 let spendingChart;
@@ -32,7 +34,7 @@ let staticCategories = [];
 let weeklyIncome = 0;
 let weeklyExpenses = 0;
 
-/* ================= UTILITY FUNCTIONS ================= */
+// Utility Functions
 function isMobile() {
   return ('ontouchstart' in window) || (window.innerWidth <= 768);
 }
@@ -104,26 +106,37 @@ function customConfirm(message) {
   });
 }
 
-/* ================= NEW: Weekly Summary Update Function ================= */
-// Now combines dynamic (front) expenses and static (back) expenses.
+// Weekly Summary Update Function
 function updateWeeklySummary() {
-  // Calculate static weekly expenses based on staticCategories
+  // Calculate static weekly expenses from staticCategories
   let staticWeekly = 0;
   if (staticCategories && staticCategories.length > 0) {
     staticCategories.forEach(cat => {
       staticWeekly += parseFloat(cat.monthly) * 12 / 52;
     });
   }
-  // Combine dynamic weekly expenses (set via updateTotalRow) with static weekly expenses
-  const combinedWeeklyExpenses = weeklyExpenses + staticWeekly;
-  
+
+  // Use your dynamic weekly expenses (from expense entries)
+  let dynamicWeekly = weeklyExpenses; // This is updated via loadExpenses()
+
+  // Aggregate both static and dynamic expenses
+  const aggregateExpenses = staticWeekly + dynamicWeekly;
+
+  // Update the UI with income, aggregated expenses, and net difference
   document.getElementById("weekly-income").textContent = "Income: $" + weeklyIncome.toFixed(2);
-  document.getElementById("weekly-expenses").textContent = "Expenses: $" + combinedWeeklyExpenses.toFixed(2);
-  const net = weeklyIncome - combinedWeeklyExpenses;
+  document.getElementById("weekly-expenses").textContent = "Expenses: $" + aggregateExpenses.toFixed(2);
+  const net = weeklyIncome - aggregateExpenses;
   document.getElementById("net-weekly").textContent = "Net: $" + net.toFixed(2);
+
+  // LOGGING FOR DEBUG
+  console.log("Static Weekly:", staticWeekly.toFixed(2),
+              "Dynamic Weekly:", dynamicWeekly.toFixed(2),
+              "Total Weekly:", aggregateExpenses.toFixed(2),
+              "Income:", weeklyIncome.toFixed(2),
+              "Net:", net.toFixed(2));
 }
 
-/* ================= FRONT SIDE Functions (Discretionary Budget) ================= */
+// FRONT SIDE Functions (Discretionary Budget)
 async function loadCategories() {
   try {
     db.ref("categories").on("value", snapshot => {
@@ -942,7 +955,7 @@ function updatePieChart() {
   }
 }
 
-/* ================= BACK SIDE Functions (Static Budget) ================= */
+// BACK SIDE Functions (Static Budget)
 async function loadCategoriesStatic() {
   try {
     db.ref("staticCategories").on("value", snapshot => {
@@ -967,8 +980,13 @@ async function loadCategoriesStatic() {
         cat.id = childSnapshot.key;
         staticCategories.push(cat);
       });
+
+      // Render categories & load the static budget
       renderCategoryListStatic();
       loadBudgetStatic();
+
+      // Call updateWeeklySummary() again to ensure static costs are included
+      updateWeeklySummary();
     });
   } catch (error) {
     console.error("Error loading static categories:", error);
@@ -1207,7 +1225,6 @@ function loadBudgetStatic() {
   `;
   totalRow.classList.add("total-row");
 
-  // Update static charts after table is built
   updateChartStatic();
   updatePieChartStatic();
 }
@@ -1235,7 +1252,7 @@ function addCategoryStatic() {
     });
 }
 
-/* ================= Coin Flip & Card Collapse ================= */
+/* Coin Flip & Card Collapse */
 let isCoinHeads = true;
 const coinFlipDiv = document.getElementById('coin-flip');
 const coinImage = document.getElementById('coin-image');
@@ -1269,7 +1286,7 @@ coinFlipDiv.addEventListener('click', () => {
   }
 });
 
-/* ================= Chart Functions for Back Side ================= */
+/* Chart Functions for Back Side */
 function updateChartStatic() {
   const budgetTable = document.getElementById("budget-table-back");
   if (!budgetTable) return;
@@ -1285,7 +1302,6 @@ function updateChartStatic() {
   if (staticSpendingChart) {
     staticSpendingChart.data.labels = labels;
     staticSpendingChart.data.datasets[0].data = weeklyBudgets;
-    // This second dataset is just a placeholder so it matches the front chart structure
     staticSpendingChart.data.datasets[1].data = weeklyBudgets.map(() => 0);
     staticSpendingChart.update();
   }
@@ -1373,7 +1389,7 @@ function initializePieChartStatic() {
   });
 }
 
-/* ================= Collapsible Headers for Both Sides ================= */
+/* Collapsible Headers for Both Sides */
 document.querySelectorAll('.collapsible-header').forEach(header => {
   header.addEventListener('click', () => {
     const content = header.nextElementSibling;
@@ -1396,7 +1412,7 @@ document.querySelectorAll('.collapsible-header').forEach(header => {
   });
 });
 
-/* ================= DOMContentLoaded & Event Listeners ================= */
+/* DOMContentLoaded & Event Listeners */
 document.addEventListener("DOMContentLoaded", function () {
   // Theme toggle
   const themeCheckbox = document.getElementById('theme-toggle-checkbox');
@@ -1466,7 +1482,7 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeChartStatic();
   initializePieChartStatic();
   loadBudgetStatic();
-  
+
   // New Take-Home Income Initialization
   const incomeVariability = document.getElementById("income-variability");
   if (incomeVariability) {
@@ -1482,7 +1498,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-  
+
   const editConstantIncomeBtn = document.getElementById("edit-constant-income");
   if (editConstantIncomeBtn) {
     editConstantIncomeBtn.addEventListener("click", function() {
@@ -1491,24 +1507,40 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = parseFloat(newIncome);
         document.getElementById("constant-income").value = value.toFixed(2);
         weeklyIncome = value;
+        localStorage.setItem("constantIncome", value);  // Save the income value
         console.log("Constant Income updated to: $" + value.toFixed(2));
         updateWeeklySummary();
       }
     });
   }
 
-  // NEW: Direct update of income when the input value changes
+  // Load constant income if stored
+  const storedIncome = localStorage.getItem("constantIncome");
+  if (storedIncome) {
+    const incomeValue = parseFloat(storedIncome);
+    document.getElementById("constant-income").value = incomeValue.toFixed(2);
+    weeklyIncome = incomeValue;
+    updateWeeklySummary();
+  }
+
+  // Direct update of income when the input value changes
   document.getElementById("constant-income").addEventListener("change", function() {
     const value = parseFloat(this.value);
     if (!isNaN(value)) {
       weeklyIncome = value;
+      localStorage.setItem("constantIncome", value);  // Save the income value
       updateWeeklySummary();
     }
   });
+
+  // NEW: Toggle slide-out panel for Income Settings
+  document.getElementById('income-slide-toggle').addEventListener('click', function() {
+    document.getElementById('income-slide-out').classList.toggle('open');
+  });
 });
 
+// Function to determine if it's payday (example: every Friday)
 function isPayday() {
-  // Example logic: assume payday is every Friday (day 5)
   const today = new Date();
   return today.getDay() === 5;
 }
