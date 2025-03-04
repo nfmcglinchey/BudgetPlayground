@@ -639,13 +639,15 @@ body.dark-mode .under-budget {
   display: block;
 }
 
+/* Updated Table Scroll Wrapper for iOS */
 .table-scroll-wrapper {
   max-width: 100%;           /* contained within the card */
-  overflow-x: scroll;        /* force horizontal scrolling */
+  overflow: auto;            /* allow scrolling in both directions */
   -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
-  transform: translateZ(0);  /* force hardware acceleration */
+  transform: translate3d(0, 0, 0);   /* force hardware acceleration */
+  height: 300px;             /* fixed height to create a scrollable area */
   box-sizing: border-box;
-  border: 1px solid var(--border-color); /* optional visual containment */
+  border: 1px solid var(--border-color); /* visual containment */
   border-radius: 4px;
   margin-top: 10px;
 }
