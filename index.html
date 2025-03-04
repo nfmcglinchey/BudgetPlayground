@@ -39,25 +39,23 @@
     .flip-card-back {
       transform: rotateY(180deg);
     }
-
     /* Updated slide-out so it’s fully hidden off-screen */
     .slide-out {
       position: fixed;
       top: 0;
-      right: -320px; /* moved further left so it’s fully offscreen */
+      right: -320px;
       width: 300px;
       height: 100%;
       background-color: var(--card-bg);
       box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
       transition: right 0.3s ease;
-      z-index: 900; /* lower than Fry's container */
+      z-index: 900;
       padding: 20px;
       overflow-y: auto;
     }
     .slide-out.open {
       right: 0;
     }
-
     /* Position coin top-right */
     .coin-container {
       position: absolute;
@@ -67,16 +65,15 @@
       height: 60px;
       cursor: pointer;
       perspective: 1000px;
-      z-index: 1100; /* coin above much of the layout */
+      z-index: 1100;
     }
-
     /* Position Fry below the coin so they don’t overlap */
     .fry-container {
       position: absolute;
-      top: 80px;   /* moves Fry below the coin */
+      top: 80px;
       right: 10px;
-      z-index: 1100; /* same z-index as coin, or adjust as needed */
-      max-width: 120px; /* smaller so it doesn’t overshadow the coin */
+      z-index: 1100;
+      max-width: 120px;
     }
     .fry-container img {
       width: 100%;
@@ -112,7 +109,6 @@
       <option value="constant">Constant</option>
       <option value="variable">Variable (Prompt Each Payday)</option>
     </select>
-    
     <!-- Constant Mode Section -->
     <div id="constant-income-section">
       <label for="constant-income">Enter Your Take-Home Amount:</label>
@@ -129,7 +125,7 @@
     <p id="net-weekly">Net: $0.00</p>
   </div>
 
-  <!-- THEME TOGGLE (unchanged) -->
+  <!-- THEME TOGGLE -->
   <div class="toggle-container theme-toggle">
     <label class="theme-switch" for="theme-toggle-checkbox">
       <input type="checkbox" id="theme-toggle-checkbox" />
@@ -169,8 +165,8 @@
           <div id="budget-section" class="card">
             <h2>Budget</h2>
             <div class="table-scroll-wrapper">
-              <table id="budget-table">
-                <!-- Table rows will be populated dynamically -->
+              <table id="budget-table" style="min-width:600px;">
+                <!-- Dynamic table rows will be populated here -->
               </table>
             </div>
           </div>
@@ -257,7 +253,7 @@
           <div id="budget-section-back" class="card">
             <h2>Budget</h2>
             <div class="table-scroll-wrapper">
-              <table id="budget-table-back">
+              <table id="budget-table-back" style="min-width:600px;">
                 <!-- Static budget table rows will be populated dynamically -->
               </table>
             </div>
@@ -296,8 +292,6 @@
         .catch(error => console.log('Service Worker registration failed:', error));
     }
     
-    // Remove the separate Income Settings button, since Fry is now the toggle
-
     // New Take-Home Income JavaScript
     document.getElementById("income-variability").addEventListener("change", function() {
       const mode = this.value;
@@ -312,7 +306,7 @@
     });
     
     function isPayday() {
-      // Example logic: assume payday is every Friday (day 5)
+      // Example: assume payday is every Friday (day 5)
       const today = new Date();
       return today.getDay() === 5;
     }
@@ -321,7 +315,6 @@
       const income = prompt("Enter today's take-home amount:");
       if (income && !isNaN(parseFloat(income))) {
         console.log("Variable Income for Payday: $" + parseFloat(income).toFixed(2));
-        // Optionally, save this income value to your database or local storage.
       }
     }
     
