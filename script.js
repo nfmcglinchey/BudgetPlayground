@@ -80,6 +80,7 @@ function customConfirm(message) {
     modalMessage.textContent = message;
     modal.style.display = "flex";
     document.body.classList.add("modal-open");
+
     function cleanup() {
       modal.style.display = "none";
       document.body.classList.remove("modal-open");
@@ -155,6 +156,7 @@ function renderCategoryList() {
       const cell = document.createElement("td");
       cell.colSpan = 3;
       cell.style.position = "relative";
+
       const swipeActions = document.createElement("div");
       swipeActions.classList.add("swipe-actions");
       const editBtn = document.createElement("button");
@@ -164,8 +166,10 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotification("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -208,6 +212,7 @@ function renderCategoryList() {
         }
       });
       swipeActions.appendChild(editBtn);
+
       const deleteBtn = document.createElement("button");
       deleteBtn.classList.add("swipe-delete");
       deleteBtn.textContent = "Delete";
@@ -224,6 +229,7 @@ function renderCategoryList() {
           });
       });
       swipeActions.appendChild(deleteBtn);
+
       const swipeContent = document.createElement("div");
       swipeContent.classList.add("swipe-content");
       swipeContent.innerHTML = `
@@ -239,9 +245,11 @@ function renderCategoryList() {
       const nameCell = document.createElement("td");
       nameCell.textContent = cat.name;
       row.appendChild(nameCell);
+
       const budgetCell = document.createElement("td");
       budgetCell.textContent = `$${monthlyVal}`;
       row.appendChild(budgetCell);
+
       const actionCell = document.createElement("td");
       const editBtn = document.createElement("button");
       editBtn.textContent = "Edit";
@@ -250,8 +258,10 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotification("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -294,6 +304,7 @@ function renderCategoryList() {
         }
       });
       actionCell.appendChild(editBtn);
+
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "Delete";
       deleteBtn.addEventListener("click", () => {
@@ -400,11 +411,13 @@ async function addExpense() {
     const rawAmount = document.getElementById("expense-amount")?.value;
     const numericString = rawAmount.replace(/[^0-9.]/g, '');
     const amount = parseFloat(numericString);
+
     if (!date || !category || !description || isNaN(amount) || amount <= 0) {
       showNotification("Please enter valid details.");
       return;
     }
     const expenseData = { date, category, description, amount };
+
     if (editingExpenseId) {
       await db.ref("expenses/" + editingExpenseId).update(expenseData);
       showNotification("Expense updated successfully");
@@ -438,6 +451,7 @@ function editExpense(expenseId, date, category, description, amount) {
   document.getElementById("expense-amount").value = `$${amount.toFixed(2)}`;
   document.getElementById("add-expense-button").textContent = "Update Expense";
   document.getElementById("cancel-edit-button").style.display = "inline-block";
+
   const addExpenseSection = document.getElementById("add-expense-section");
   const collapsibleContent = addExpenseSection.querySelector('.collapsible-content');
   if (collapsibleContent && (collapsibleContent.style.display === "none" || collapsibleContent.style.display === "")) {
@@ -470,6 +484,7 @@ function loadExpenses() {
   startOfWeek.setDate(today.getDate() - diff);
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 7);
+
   if (expensesListener) {
     db.ref("expenses").off("value", expensesListener);
   }
@@ -487,11 +502,13 @@ function loadExpenses() {
     const selectedMonth = document.getElementById("filter-month")?.value;
     const selectedYear = document.getElementById("filter-year")?.value;
     const monthlyExpenses = [];
+
     snapshot.forEach(childSnapshot => {
       const expense = childSnapshot.val();
       const expenseDate = parseLocalDate(expense.date);
       const expenseMonth = (expenseDate.getMonth() + 1).toString();
       const expenseYear = expenseDate.getFullYear().toString();
+
       if (expenseMonth === selectedMonth && expenseYear === selectedYear) {
         updateBudgetTotals(expense.category, expense.amount, expenseDate, "month");
         monthlyExpenses.push({
@@ -507,8 +524,10 @@ function loadExpenses() {
         updateBudgetTotals(expense.category, expense.amount, expenseDate, "week");
       }
     });
+
     monthlyExpenses.sort((a, b) => b.parsedDate - a.parsedDate);
     const finalExpenses = showAllExpenses ? monthlyExpenses : monthlyExpenses.slice(0, 5);
+
     finalExpenses.forEach(exp => {
       const formattedDate = formatDate(exp.date);
       if (isMobile()) {
@@ -517,6 +536,7 @@ function loadExpenses() {
         const cell = document.createElement("td");
         cell.colSpan = 5;
         cell.style.position = "relative";
+
         const swipeActions = document.createElement("div");
         swipeActions.classList.add("swipe-actions");
         const editBtn = document.createElement("button");
@@ -526,6 +546,7 @@ function loadExpenses() {
           editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
         });
         swipeActions.appendChild(editBtn);
+
         const deleteBtn = document.createElement("button");
         deleteBtn.classList.add("swipe-delete");
         deleteBtn.textContent = "Delete";
@@ -538,6 +559,7 @@ function loadExpenses() {
             });
         });
         swipeActions.appendChild(deleteBtn);
+
         const swipeContent = document.createElement("div");
         swipeContent.classList.add("swipe-content");
         swipeContent.innerHTML = `
@@ -556,6 +578,7 @@ function loadExpenses() {
         let startX = 0, currentX = 0;
         const threshold = 80;
         const fullSwipeThreshold = -250;
+
         swipeContent.addEventListener("touchstart", function(e) {
           startX = e.touches[0].clientX;
           swipeContent.style.transition = "";
@@ -567,7 +590,7 @@ function loadExpenses() {
             swipeContent.style.transform = `translateX(${deltaX}px)`;
           }
         });
-        swipeContent.addEventListener("touchend", function(e) {
+        swipeContent.addEventListener("touchend", function() {
           let deltaX = currentX - startX;
           if (deltaX < fullSwipeThreshold) {
             swipeContent.style.transition = "transform 0.3s ease";
@@ -595,15 +618,19 @@ function loadExpenses() {
         const dateCell = document.createElement("td");
         dateCell.textContent = formattedDate;
         row.appendChild(dateCell);
+
         const categoryCell = document.createElement("td");
         categoryCell.textContent = exp.category;
         row.appendChild(categoryCell);
+
         const descCell = document.createElement("td");
         descCell.textContent = exp.description || "—";
         row.appendChild(descCell);
+
         const amountCell = document.createElement("td");
         amountCell.textContent = `$${exp.amount.toFixed(2)}`;
         row.appendChild(amountCell);
+
         const actionCell = document.createElement("td");
         const editBtn = document.createElement("button");
         editBtn.textContent = "Edit";
@@ -612,6 +639,7 @@ function loadExpenses() {
           editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
         });
         actionCell.appendChild(editBtn);
+
         const deleteBtn = document.createElement("button");
         deleteBtn.textContent = "Delete";
         deleteBtn.addEventListener("click", () => {
@@ -624,9 +652,11 @@ function loadExpenses() {
         });
         actionCell.appendChild(deleteBtn);
         row.appendChild(actionCell);
+
         expensesTable.appendChild(row);
       }
     });
+
     updateTotalRow();
     updateChartDebounced();
     updatePieChart();
@@ -677,8 +707,10 @@ function updateBudgetTotals(category, amount, expenseDate, type) {
         let currentMonthTotal = parseFloat(actualMonthCell.getAttribute('data-total')) || 0;
         const newMonthTotal = currentMonthTotal + amount;
         actualMonthCell.setAttribute('data-total', newMonthTotal);
+
         const monthlyBudget = parseFloat(row.cells[1].textContent.replace("$", ""));
         applyBudgetColors(actualMonthCell, newMonthTotal, monthlyBudget);
+
         if (newMonthTotal > monthlyBudget) {
           actualMonthCell.innerHTML = `$${newMonthTotal.toFixed(2)} <span class="warning-icon" title="Over Budget!">⚠️</span>`;
         } else {
@@ -689,8 +721,10 @@ function updateBudgetTotals(category, amount, expenseDate, type) {
         let currentWeekTotal = parseFloat(actualWeekCell.getAttribute('data-total')) || 0;
         const newWeekTotal = currentWeekTotal + amount;
         actualWeekCell.setAttribute('data-total', newWeekTotal);
+
         const weeklyBudget = parseFloat(row.cells[2].textContent.replace("$", ""));
         applyBudgetColors(actualWeekCell, newWeekTotal, weeklyBudget);
+
         if (newWeekTotal > weeklyBudget) {
           actualWeekCell.innerHTML = `$${newWeekTotal.toFixed(2)} <span class="warning-icon" title="Over Budget!">⚠️</span>`;
         } else {
@@ -936,6 +970,7 @@ function renderCategoryListStatic() {
       const cell = document.createElement("td");
       cell.colSpan = 3;
       cell.style.position = "relative";
+
       const swipeActions = document.createElement("div");
       swipeActions.classList.add("swipe-actions");
       const editBtn = document.createElement("button");
@@ -945,8 +980,10 @@ function renderCategoryListStatic() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotificationStatic("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -989,6 +1026,7 @@ function renderCategoryListStatic() {
         }
       });
       swipeActions.appendChild(editBtn);
+
       const deleteBtn = document.createElement("button");
       deleteBtn.classList.add("swipe-delete");
       deleteBtn.textContent = "Delete";
@@ -1005,6 +1043,7 @@ function renderCategoryListStatic() {
           });
       });
       swipeActions.appendChild(deleteBtn);
+
       const swipeContent = document.createElement("div");
       swipeContent.classList.add("swipe-content");
       swipeContent.innerHTML = `
@@ -1020,9 +1059,11 @@ function renderCategoryListStatic() {
       const nameCell = document.createElement("td");
       nameCell.textContent = cat.name;
       row.appendChild(nameCell);
+
       const budgetCell = document.createElement("td");
       budgetCell.textContent = `$${monthlyVal}`;
       row.appendChild(budgetCell);
+
       const actionCell = document.createElement("td");
       const editBtn = document.createElement("button");
       editBtn.textContent = "Edit";
@@ -1031,8 +1072,10 @@ function renderCategoryListStatic() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          if (newName.toLowerCase() !== cat.name.toLowerCase() &&
-              staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())) {
+          if (
+            newName.toLowerCase() !== cat.name.toLowerCase() &&
+            staticCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
+          ) {
             showNotificationStatic("Duplicate category name. Please enter a unique category.");
             return;
           }
@@ -1075,6 +1118,7 @@ function renderCategoryListStatic() {
         }
       });
       actionCell.appendChild(editBtn);
+
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "Delete";
       deleteBtn.addEventListener("click", () => {
@@ -1117,6 +1161,7 @@ function loadBudgetStatic() {
     const annualBudget = monthlyVal * 12;
     const weeklyBudget = monthlyVal * 12 / 52;
     totalMonthly += monthlyVal;
+
     const row = budgetTable.insertRow();
     row.innerHTML = `
       <td>${category.name}</td>
@@ -1145,6 +1190,7 @@ function addCategoryStatic() {
   const newNameEl = document.getElementById("new-category-name-back");
   const newMonthlyEl = document.getElementById("new-category-monthly-back");
   if (!newNameEl || !newMonthlyEl) return;
+
   const newName = newNameEl.value.trim();
   const newMonthly = parseFloat(newMonthlyEl.value);
   if (!newName || isNaN(newMonthly)) {
@@ -1213,6 +1259,7 @@ function updateChartStatic() {
   if (staticSpendingChart) {
     staticSpendingChart.data.labels = labels;
     staticSpendingChart.data.datasets[0].data = weeklyBudgets;
+    // This second dataset is just a placeholder so it matches the front chart structure
     staticSpendingChart.data.datasets[1].data = weeklyBudgets.map(() => 0);
     staticSpendingChart.update();
   }
@@ -1255,6 +1302,11 @@ function initializeChartStatic() {
           label: "Weekly Budget",
           data: [],
           backgroundColor: isDark ? "#1d72b8" : "#1D72B8",
+        },
+        {
+          label: "Placeholder", // So it doesn't break the bar chart layout
+          data: [],
+          backgroundColor: isDark ? "#ff3b30" : "#FF3B30",
         }
       ]
     },
@@ -1296,7 +1348,7 @@ function initializePieChartStatic() {
 }
 
 /* ================= Collapsible Headers for Both Sides ================= */
-// Updated collapsible header handler for ensuring charts update when their container is visible
+// Ensures charts update after the container is visible
 document.querySelectorAll('.collapsible-header').forEach(header => {
   header.addEventListener('click', () => {
     const content = header.nextElementSibling;
@@ -1304,14 +1356,14 @@ document.querySelectorAll('.collapsible-header').forEach(header => {
       content.style.display = "block";
       header.classList.add("expanded");
 
-      // If this header belongs to the back-side Spending Breakdown section, update the chart after a delay
+      // If this header belongs to the back-side Spending Breakdown section, update chart after a delay
       if (header.parentElement && header.parentElement.id === "pie-chart-section-back") {
         setTimeout(() => {
           if (staticPieChart) {
             staticPieChart.resize();
             staticPieChart.update();
           }
-        }, 300); // Delay to ensure container is visible
+        }, 300);
       }
     } else {
       content.style.display = "none";
@@ -1367,7 +1419,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Manage Categories toggle (Front)
   document.getElementById('toggle-manage-categories').addEventListener('click', () => {
     const manageCategoriesCard = document.getElementById('manage-categories');
-    manageCategoriesCard.style.display = (manageCategoriesCard.style.display === 'none' || manageCategoriesCard.style.display === '')
+    manageCategoriesCard.style.display = (
+      manageCategoriesCard.style.display === 'none' ||
+      manageCategoriesCard.style.display === ''
+    )
       ? 'block'
       : 'none';
   });
@@ -1376,7 +1431,10 @@ document.addEventListener("DOMContentLoaded", function () {
   loadCategoriesStatic();
   document.getElementById('toggle-manage-categories-back').addEventListener('click', () => {
     const manageCategoriesCard = document.getElementById('manage-categories-back');
-    manageCategoriesCard.style.display = (manageCategoriesCard.style.display === 'none' || manageCategoriesCard.style.display === '')
+    manageCategoriesCard.style.display = (
+      manageCategoriesCard.style.display === 'none' ||
+      manageCategoriesCard.style.display === ''
+    )
       ? 'block'
       : 'none';
   });
