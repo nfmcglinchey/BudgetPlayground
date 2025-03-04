@@ -631,3 +631,36 @@ body.dark-mode .under-budget {
   background-color: #34c759 !important;
   color: #fff;
 }
+
+/* New Slide-Out Panel for Income Settings */
+.slide-out {
+  position: fixed;
+  top: 0;
+  left: 130px; /* leaves space for Fry */
+  width: calc(100vw - 130px);
+  height: 100vh;
+  background-color: var(--card-bg);
+  box-shadow: none;
+  transition: opacity 0.3s ease;
+  z-index: 10000;
+  padding: 20px;
+  overflow-y: auto;
+  display: none;
+}
+.slide-out.open {
+  display: block;
+}
+
+/* Updated Fry Container (positioned on the left, below the theme toggle) */
+.fry-container {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 60px);
+  left: 10px;
+  z-index: 11000; /* higher than slide-out so it remains clickable */
+  max-width: 120px;
+}
+.fry-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
