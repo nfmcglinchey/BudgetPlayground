@@ -639,15 +639,13 @@ body.dark-mode .under-budget {
   display: block;
 }
 
-/* Updated Table Scroll Wrapper for iOS */
+/* New Table Scroll Wrapper for iOS */
 .table-scroll-wrapper {
   max-width: 100%;           /* contained within the card */
-  overflow: auto;            /* allow scrolling in both directions */
+  overflow-x: scroll;        /* force horizontal scrolling */
   -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
-  transform: translate3d(0, 0, 0);   /* force hardware acceleration */
-  height: 300px;             /* fixed height to create a scrollable area */
   box-sizing: border-box;
-  border: 1px solid var(--border-color); /* visual containment */
+  border: 1px solid var(--border-color); /* optional visual containment */
   border-radius: 4px;
   margin-top: 10px;
 }
@@ -655,4 +653,9 @@ body.dark-mode .under-budget {
   width: 100%;
   min-width: 600px;  /* adjust based on your table's columns */
   border-collapse: collapse;
+}
+
+/* NEW: Force front side into its own layer */
+.flip-card-front {
+  transform: translateZ(0);
 }
