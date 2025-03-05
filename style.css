@@ -660,3 +660,15 @@ body.dark-mode .under-budget {
   width: 100%;
   min-width: 600px;  /* adjust based on your table's columns */
 }
+
+/* Custom Overrides for Flip Card Table Scroll Behavior */
+.flip-card-front .table-scroll-wrapper {
+  height: 300px !important;
+  overflow-y: scroll !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.flip-card-back .table-scroll-wrapper {
+  height: auto !important;
+  overflow: visible !important;
+}
