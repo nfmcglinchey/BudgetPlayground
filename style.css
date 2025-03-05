@@ -246,6 +246,7 @@ input:checked + .slider:before {
   height: 60px;
   cursor: pointer;
   perspective: 1000px;
+  z-index: 1100;
 }
 .coin-container img {
   width: 100%;
@@ -668,7 +669,7 @@ body.dark-mode .under-budget {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  overflow: hidden;
+  /* Removed overflow: hidden; to avoid clipping */
 }
 .flip-card-inner {
   position: relative;
@@ -683,6 +684,7 @@ body.dark-mode .under-budget {
   left: 0;
   width: 100%;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .flip-card-front {
   z-index: 2;
