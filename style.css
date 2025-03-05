@@ -12,8 +12,8 @@
   --modal-bg: #fff;
 }
 
-/* Dark mode variables */
 body.dark-mode {
+  /* Dark theme variables */
   --bg-color: #121212;
   --text-color: #e0e0e0;
   --card-bg: #1e1e1e;
@@ -46,8 +46,7 @@ h1, h2 {
 }
 
 /* Notification Styles */
-#notification,
-#notification-back {
+#notification {
   position: fixed;
   top: 20px;
   right: 20px;
@@ -61,8 +60,7 @@ h1, h2 {
   transition: opacity 0.5s ease;
   z-index: 1000;
 }
-#notification.show,
-#notification-back.show {
+#notification.show {
   opacity: 1;
 }
 
@@ -76,28 +74,15 @@ h1, h2 {
   padding: 20px;
   max-width: 960px;
   border: 1px solid var(--border-color);
-  box-sizing: border-box;
 }
 
-/* Weekly Summary Card */
-#weekly-summary {
-  text-align: center;
-}
-#weekly-summary p {
-  font-size: 18px;
-  margin: 10px 0;
-  font-weight: bold;
-}
-
-/* Manage Categories sections hidden by default */
-#manage-categories,
-#manage-categories-back {
+/* Manage Categories hidden by default */
+#manage-categories {
   display: none;
 }
 
 /* Toggle Button for Manage Categories */
-#toggle-manage-categories,
-#toggle-manage-categories-back {
+#toggle-manage-categories {
   background: #e2e2e2;
   color: #333;
   border: 1px solid #ccc;
@@ -107,8 +92,7 @@ h1, h2 {
   display: block;
   cursor: pointer;
 }
-#toggle-manage-categories:hover,
-#toggle-manage-categories-back:hover {
+#toggle-manage-categories:hover {
   background: #d2d2d2;
 }
 
@@ -140,9 +124,8 @@ h1, h2 {
   flex-direction: column;
 }
 
-/* Form Fields */
-input,
-select {
+/* Form Fields: Inputs and Selects */
+input, select {
   padding: 8px;
   font-size: 16px;
   border: 1px solid var(--border-color);
@@ -174,87 +157,10 @@ button:focus {
   outline-offset: 2px;
 }
 
-/* THEME TOGGLE (top-left) */
-.toggle-container.theme-toggle {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 10px);
-  left: 10px;
-  width: 60px;
-  height: 34px;
-  z-index: 1000;
-}
-.theme-switch {
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  position: relative;
-}
-.theme-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: #eee;
-  transition: 0.4s;
-  border-radius: 34px;
-}
-.slider:before {
-  content: "☀";
-  color: #FFC107;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: #fff;
-  border-radius: 50%;
-  transition: 0.4s;
-}
-input:checked + .slider {
-  background-color: #333;
-}
-input:checked + .slider:before {
-  content: "🌙";
-  color: #2196F3;
-  transform: translateX(26px);
-}
-.slider.round {
-  border-radius: 34px;
-}
-.slider.round:before {
-  border-radius: 50%;
-}
-.theme-label {
-  font-size: 14px;
-  color: var(--text-color);
-}
-
-/* COIN CONTAINER (top-right) */
-.coin-container {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 10px);
-  right: 10px;
-  width: 60px;
-  height: 60px;
-  cursor: pointer;
-  perspective: 1000px;
-}
-.coin-container img {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.8s;
-  transform-style: preserve-3d;
-}
-.coin-container.flip img {
-  transform: rotateY(180deg);
+/* Table Container */
+#budget-section,
+#expenses-section {
+  overflow-x: auto;
 }
 
 /* Table Styles */
@@ -276,15 +182,33 @@ th {
   background-color: #f1f1f1;
   font-weight: 500;
 }
-th:nth-child(2),
-td:nth-child(2),
-th:nth-child(3),
-td:nth-child(3),
-th:nth-child(4),
-td:nth-child(4),
-th:nth-child(5),
-td:nth-child(5) {
+th:nth-child(2), td:nth-child(2),
+th:nth-child(3), td:nth-child(3),
+th:nth-child(4), td:nth-child(4),
+th:nth-child(5), td:nth-child(5) {
   text-align: center;
+}
+
+/* Sticky Column Adjustments */
+
+/* For Budget table: make first column sticky but with a lower z-index so other columns overlap it */
+#budget-table th:nth-child(1),
+#budget-table td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 0; /* Lower stacking order so it goes underneath subsequent columns */
+  background-color: var(--card-bg);
+  border-right: none !important;
+}
+
+/* For Expenses table: keep sticky for the second column as before */
+#expenses-table th:nth-child(2),
+#expenses-table td:nth-child(2) {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  font-weight: 600;
+  border-right: 2px solid #ddd;
 }
 
 /* Hover Effect */
@@ -297,7 +221,7 @@ tr:hover {
   background-color: #ff3b30 !important;
 }
 .near-budget {
-  background-color: #fff8c4 !important;
+  background-color: #ffcc00 !important;
 }
 .under-budget {
   background-color: #34c759 !important;
@@ -305,7 +229,11 @@ tr:hover {
 
 /* Highlight Animation */
 .highlight-week {
-  outline: 2px solid #ff0;
+  animation: highlightFlash 1.5s ease-out;
+}
+@keyframes highlightFlash {
+  0%   { background-color: #ffff88; }
+  100% { background-color: transparent; }
 }
 
 /* Chart Container */
@@ -340,6 +268,7 @@ tr:hover {
   #budget-table td:nth-child(1),
   #expenses-table th:nth-child(2),
   #expenses-table td:nth-child(2) {
+    /*min-width: 160px;*/
     max-width: 180px;
   }
   table {
@@ -352,11 +281,13 @@ tr:hover {
   font-weight: bold;
   background-color: #f0f0f0;
 }
+
+/* Dark mode override for Total Row */
 body.dark-mode .total-row {
   background-color: #2a2a2a !important;
 }
 
-/* Editing Mode for Add Expense Section */
+/* Editing Mode */
 #add-expense-section.editing-mode {
   border: 2px solid #ff9900;
   box-shadow: 0 0 10px rgba(255, 153, 0, 0.5);
@@ -367,37 +298,31 @@ body.dark-mode .total-row {
   100% { box-shadow: 0 0 15px rgba(255, 153, 0, 0.8); }
 }
 
-/* Manage Categories Styles */
-#manage-categories .form-group,
-#manage-categories-back .form-group {
+/* Manage Categories */
+#manage-categories .form-group {
   margin: 10px auto;
   max-width: 300px;
   display: flex;
   flex-direction: column;
 }
 #new-category-name,
-#new-category-monthly,
-#new-category-name-back,
-#new-category-monthly-back {
+#new-category-monthly {
   width: 100%;
   box-sizing: border-box;
 }
-#category-list,
-#category-list-back {
+#category-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-#category-list li,
-#category-list-back li {
+#category-list li {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 8px;
   margin: 8px 0;
 }
-#category-list li button,
-#category-list-back li button {
+#category-list li button {
   width: 80px;
   margin-top: 0;
 }
@@ -456,7 +381,7 @@ body.dark-mode .total-row {
   justify-content: space-around;
 }
 
-/* Desktop Table Action Buttons */
+/* Standard Action Buttons in Desktop Table */
 #expenses-table td:nth-child(5) {
   text-align: center;
   white-space: nowrap;
@@ -471,7 +396,7 @@ body.dark-mode .total-row {
   box-sizing: border-box;
 }
 
-/* Add Expense Section Buttons */
+/* Add Expense Buttons */
 #add-expense-section {
   text-align: center;
 }
@@ -494,7 +419,7 @@ body.dark-mode .total-row {
   }
 }
 
-/* Swipe-to-Delete for Mobile */
+/* Swipe-to-Delete Styles for Mobile */
 .expense-swipe td {
   position: relative;
   overflow: hidden;
@@ -513,6 +438,7 @@ body.dark-mode .total-row {
   height: 44px;
   box-sizing: border-box;
 }
+/* NEW: Dark mode override for swipe-content */
 body.dark-mode .swipe-content {
   background-color: #2a2a2a;
   color: var(--text-color);
@@ -552,7 +478,7 @@ body.dark-mode .swipe-content {
   background-color: rgba(255, 59, 48, 0.2);
 }
 
-/* Mobile Specific Overrides */
+/* Mobile-specific overrides */
 @media screen and (max-width: 768px) {
   #expenses-table tr:first-child {
     display: none;
@@ -606,58 +532,58 @@ body.dark-mode .under-budget {
   color: #fff;
 }
 
-/* New Slide-Out Panel for Income Settings */
-.slide-out {
-  position: fixed;
-  top: 0;
-  left: 130px; /* leaves space for Fry */
-  width: calc(100vw - 130px);
-  height: 100vh;
-  background-color: var(--card-bg);
-  box-shadow: none;
-  transition: opacity 0.3s ease;
-  z-index: 10000;
-  padding: 20px;
-  overflow-y: auto;
-  display: none;
-}
-.slide-out.open {
-  display: block;
-}
-
-/* Updated Fry Container (positioned on the left, below the theme toggle) */
-.fry-container {
-  position: absolute;
+/* Fixed Toggle Container for Theme Switch */
+.toggle-container {
+  position: absolute; /* now part of the page flow */
   top: calc(env(safe-area-inset-top) + 60px);
-  left: 10px;
-  z-index: 11000; /* higher than slide-out so it remains clickable */
-  max-width: 120px;
-}
-.fry-container img {
-  width: 100%;
-  height: auto;
-  display: block;
+  right: 10px;
+  width: 50px;
+  height: 24px;
+  z-index: 1000;
 }
 
-/* Updated Table Scroll Wrapper for iOS */
-.table-scroll-wrapper {
-  max-width: 100%;           /* contained within the card */
-  overflow: auto;            /* allow scrolling in both directions */
-  -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
-  transform: translate3d(0, 0, 0);   /* force hardware acceleration */
-  height: 300px;             /* fixed height to create a scrollable area */
-  box-sizing: border-box;
-  border: 1px solid var(--border-color); /* visual containment */
-  border-radius: 4px;
-  margin-top: 10px;
-  -ms-overflow-style: none;  /* hide scrollbar in IE and Edge */
-  scrollbar-width: none;     /* hide scrollbar in Firefox */
-}
-.table-scroll-wrapper::-webkit-scrollbar {
-  display: none;             /* hide scrollbar in Safari and Chrome */
-}
-.table-scroll-wrapper table {
+.theme-switch {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 100%;
-  min-width: 600px;  /* adjust based on your table's columns */
-  border-collapse: collapse;
+  height: 100%;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+/* Slider Styles */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 34px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: 0.4s;
+}
+.slider:before {
+  content: "";
+  position: absolute;
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+input:checked + .slider {
+  background-color: var(--accent-color);
+}
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
 }
