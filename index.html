@@ -16,30 +16,65 @@
   <link rel="stylesheet" href="style.css" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Inline extra flip-card styles (optional) -->
+
+  <!-- Inline Flip Card + Slide-Out Overrides -->
   <style>
+    /* Flip Card Container */
     .flip-card {
+      /* Removed overflow: hidden; to avoid clipping on iOS */
       perspective: 1000px;
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      margin: 0 auto;
     }
     .flip-card-inner {
       position: relative;
+      width: 100%;
       transition: transform 0.8s;
       transform-style: preserve-3d;
     }
-    .flip-card.flip .flip-card-inner {
-      transform: rotateY(180deg);
-    }
+
+    /* FRONT and BACK sides */
     .flip-card-front,
     .flip-card-back {
       position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
+
+    /* FRONT side active by default */
+    .flip-card-front {
+      z-index: 2;             /* on top */
+      pointer-events: auto;   /* clickable */
+    }
+
+    /* BACK side initially rotated and disabled */
     .flip-card-back {
       transform: rotateY(180deg);
+      z-index: 1;
+      pointer-events: none;
     }
-    /* Updated slide-out so it’s fully hidden off-screen */
+
+    /* When flipped, rotate the inner container */
+    .flip-card.flip .flip-card-inner {
+      transform: rotateY(180deg);
+    }
+
+    /* Swap z-index and pointer-events so back is active, front is disabled */
+    .flip-card.flip .flip-card-front {
+      z-index: 1;
+      pointer-events: none;
+    }
+    .flip-card.flip .flip-card-back {
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    /* Slide-out panel is pinned to the right, off-screen by default */
     .slide-out {
       position: fixed;
       top: 0;
@@ -56,7 +91,8 @@
     .slide-out.open {
       right: 0;
     }
-    /* Position coin top-right */
+
+    /* Coin container top-right */
     .coin-container {
       position: absolute;
       top: 10px;
@@ -67,7 +103,8 @@
       perspective: 1000px;
       z-index: 1100;
     }
-    /* Position Fry below the coin so they don’t overlap */
+
+    /* Fry container below the coin */
     .fry-container {
       position: absolute;
       top: 80px;
@@ -82,6 +119,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- Notifications -->
   <div id="notification" role="alert" aria-live="assertive"></div>
@@ -235,6 +273,7 @@
           </div>
         </main>
       </div>
+
       <!-- BACK SIDE: Static Budget -->
       <div class="flip-card-back">
         <button id="toggle-manage-categories-back">Manage Categories</button>
@@ -277,8 +316,8 @@
           </div>
         </main>
       </div>
-    </div>
-  </div>
+    </div> <!-- flip-card-inner -->
+  </div> <!-- flip-card -->
 
   <!-- Firebase and Main Scripts -->
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
