@@ -661,14 +661,57 @@ body.dark-mode .under-budget {
   min-width: 600px;  /* adjust based on your table's columns */
 }
 
-/* Custom Overrides for Flip Card Table Scroll Behavior */
-.flip-card-front .table-scroll-wrapper {
-  height: 300px !important;
-  overflow-y: scroll !important;
-  -webkit-overflow-scrolling: touch;
+/* Flip Card Styles */
+.flip-card {
+  perspective: 1000px;
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+.flip-card-front,
+.flip-card-back {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  backface-visibility: hidden;
+}
+.flip-card-front {
+  z-index: 2;
+  pointer-events: auto;
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+  z-index: 1;
+  pointer-events: none;
+}
+.flip-card.flip .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card.flip .flip-card-front {
+  z-index: 1;
+  pointer-events: none;
+}
+.flip-card.flip .flip-card-back {
+  z-index: 2;
+  pointer-events: auto;
 }
 
+/* Custom Overrides for Flip Card Table Scroll Behavior */
+.flip-card-front .table-scroll-wrapper {
+  max-height: 300px !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
 .flip-card-back .table-scroll-wrapper {
-  height: auto !important;
+  max-height: none !important;
   overflow: visible !important;
 }
