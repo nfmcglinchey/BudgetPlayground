@@ -326,17 +326,6 @@
       document.getElementById('income-slide-out').classList.toggle('open');
     });
     
-    // Flip handler: toggle flip on coin click
-    document.getElementById("coin-flip").addEventListener("click", () => {
-      document.getElementById("budget-flip-card").classList.toggle("flip");
-      const coinImage = document.getElementById("coin-image");
-      if (coinImage.src.indexOf("coin-heads") !== -1) {
-        coinImage.src = "coin-tails.png";
-      } else {
-        coinImage.src = "coin-heads.png";
-      }
-    });
-    
     /* The rest of your Firebase and expense/category JS remains unchanged */
   </script>
 </body>
