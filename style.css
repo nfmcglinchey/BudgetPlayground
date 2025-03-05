@@ -659,5 +659,4 @@ body.dark-mode .under-budget {
 .table-scroll-wrapper table {
   width: 100%;
   min-width: 600px;  /* adjust based on your table's columns */
-  border-collapse: collapse;
 }
