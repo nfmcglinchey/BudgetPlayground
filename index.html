@@ -17,15 +17,16 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <!-- Inline Flip-Card and Flip Overrides -->
+  <!-- Inline Flip-Card CSS (ensure this appears after other conflicting styles) -->
   <style>
-    /* Flip Card Container – no overflow hidden to avoid clipping */
+    /* Flip Card Styles */
     .flip-card {
       perspective: 1000px;
       position: relative;
       width: 100%;
       max-width: 960px;
       margin: 0 auto;
+      /* Do not use overflow:hidden to avoid clipping */
     }
     .flip-card-inner {
       position: relative;
@@ -33,7 +34,6 @@
       transition: transform 0.8s;
       transform-style: preserve-3d;
     }
-    /* Front & Back sides */
     .flip-card-front,
     .flip-card-back {
       position: absolute;
@@ -52,9 +52,9 @@
       z-index: 1;
       pointer-events: none;
     }
-    /* When flipped, swap pointer events and z-index */
+    /* Flip when .flip is toggled */
     .flip-card.flip .flip-card-inner {
-      transform: rotateY(180deg);
+      transform: rotateY(180deg) !important;
     }
     .flip-card.flip .flip-card-front {
       z-index: 1;
@@ -64,13 +64,13 @@
       z-index: 2;
       pointer-events: auto;
     }
-    /* FRONT side: Force 300px scroll container */
+    /* Front side: force table container scroll at 300px */
     .flip-card-front .table-scroll-wrapper {
       height: 300px !important;
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch;
     }
-    /* BACK side: Auto-size (no forced height) */
+    /* Back side: allow full table (no forced height) */
     .flip-card-back .table-scroll-wrapper {
       height: auto !important;
       max-height: none !important;
@@ -289,7 +289,7 @@
         .catch(error => console.log('Service Worker registration failed:', error));
     }
     
-    // New Take-Home Income JavaScript
+    // Take-Home Income Logic
     document.getElementById("income-variability").addEventListener("change", function() {
       const mode = this.value;
       if (mode === "constant") {
@@ -326,10 +326,9 @@
       document.getElementById('income-slide-out').classList.toggle('open');
     });
     
-    // Flip handler: toggle the flip class when the coin is clicked
+    // Flip handler: toggle flip on coin click
     document.getElementById("coin-flip").addEventListener("click", () => {
       document.getElementById("budget-flip-card").classList.toggle("flip");
-      // Toggle coin image
       const coinImage = document.getElementById("coin-image");
       if (coinImage.src.indexOf("coin-heads") !== -1) {
         coinImage.src = "coin-tails.png";
@@ -338,9 +337,7 @@
       }
     });
     
-    /* Remaining JS for expense/category handling, charts, etc.
-       (Omitted here for brevity – your existing code remains unchanged.)
-    */
+    /* The rest of your Firebase and expense/category JS remains unchanged */
   </script>
 </body>
 </html>
