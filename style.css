@@ -33,13 +33,9 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
 }
-
-/* Prevent background scrolling when modal is open */
 body.modal-open {
   overflow: hidden;
 }
-
-/* Headings */
 h1, h2 {
   text-align: center;
   color: var(--text-color);
@@ -89,13 +85,11 @@ h1, h2 {
   font-weight: bold;
 }
 
-/* Manage Categories sections hidden by default */
+/* Manage Categories Sections */
 #manage-categories,
 #manage-categories-back {
   display: none;
 }
-
-/* Toggle Button for Manage Categories */
 #toggle-manage-categories,
 #toggle-manage-categories-back {
   background: #e2e2e2;
@@ -132,15 +126,13 @@ h1, h2 {
   line-height: normal;
 }
 
-/* Form Group */
+/* Form Group & Fields */
 .form-group {
   margin: 10px auto;
   max-width: 300px;
   display: flex;
   flex-direction: column;
 }
-
-/* Form Fields */
 input,
 select {
   padding: 8px;
@@ -174,7 +166,7 @@ button:focus {
   outline-offset: 2px;
 }
 
-/* THEME TOGGLE (top-left) */
+/* THEME TOGGLE */
 .toggle-container.theme-toggle {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 10px);
@@ -197,7 +189,10 @@ button:focus {
 .slider {
   position: absolute;
   cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: #eee;
   transition: 0.4s;
   border-radius: 34px;
@@ -237,7 +232,7 @@ input:checked + .slider:before {
   color: var(--text-color);
 }
 
-/* COIN CONTAINER (top-right) */
+/* COIN CONTAINER */
 .coin-container {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 10px);
@@ -287,8 +282,6 @@ th:nth-child(5),
 td:nth-child(5) {
   text-align: center;
 }
-
-/* Hover Effect */
 tr:hover {
   background-color: #f8f8f8;
 }
@@ -303,8 +296,6 @@ tr:hover {
 .under-budget {
   background-color: #34c759 !important;
 }
-
-/* Highlight Animation */
 .highlight-week {
   outline: 2px solid #ff0;
 }
@@ -607,7 +598,7 @@ body.dark-mode .under-budget {
   color: #fff;
 }
 
-/* New Slide-Out Panel for Income Settings */
+/* Slide-Out Panel for Income Settings */
 .slide-out {
   position: fixed;
   top: 0;
@@ -626,12 +617,12 @@ body.dark-mode .under-budget {
   display: block;
 }
 
-/* Updated Fry Container (positioned on the left, below the theme toggle) */
+/* Fry Container */
 .fry-container {
   position: absolute;
   top: calc(env(safe-area-inset-top) + 60px);
   left: 10px;
-  z-index: 11000; /* higher than slide-out so it remains clickable */
+  z-index: 11000;
   max-width: 120px;
 }
 .fry-container img {
@@ -640,24 +631,24 @@ body.dark-mode .under-budget {
   display: block;
 }
 
-/* Updated Table Scroll Wrapper for iOS */
+/* Table Scroll Wrapper */
 .table-scroll-wrapper {
-  max-width: 100%;           /* contained within the card */
-  -webkit-overflow-scrolling: touch; /* momentum scrolling on iOS */
-  transform: translate3d(0, 0, 0);   /* force hardware acceleration */
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  transform: translate3d(0, 0, 0);
   box-sizing: border-box;
-  border: 1px solid var(--border-color); /* visual containment */
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   margin-top: 10px;
-  -ms-overflow-style: none;  /* hide scrollbar in IE and Edge */
-  scrollbar-width: none;     /* hide scrollbar in Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .table-scroll-wrapper::-webkit-scrollbar {
-  display: none;             /* hide scrollbar in Safari and Chrome */
+  display: none;
 }
 .table-scroll-wrapper table {
   width: 100%;
-  min-width: 600px;  /* adjust based on your table's columns */
+  min-width: 600px;
 }
 
 /* Flip Card Styles */
@@ -667,7 +658,6 @@ body.dark-mode .under-budget {
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  /* Removed overflow: hidden; to avoid clipping on iOS */
 }
 .flip-card-inner {
   position: relative;
@@ -711,7 +701,7 @@ body.dark-mode .under-budget {
   overflow-y: auto !important;
 }
 
-/* BACK side: auto-size, no forced scrolling */
+/* BACK side: auto-size */
 .flip-card-back .table-scroll-wrapper {
   height: auto !important;
   max-height: none !important;
