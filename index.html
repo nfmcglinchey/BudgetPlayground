@@ -19,7 +19,7 @@
   
   <!-- Inline Flip-Card and Flip Overrides -->
   <style>
-    /* Flip Card Container – note: no overflow hidden here */
+    /* Flip Card Container – no overflow hidden to avoid clipping */
     .flip-card {
       perspective: 1000px;
       position: relative;
@@ -52,7 +52,7 @@
       z-index: 1;
       pointer-events: none;
     }
-    /* When flipped, swap interaction */
+    /* When flipped, swap pointer events and z-index */
     .flip-card.flip .flip-card-inner {
       transform: rotateY(180deg);
     }
@@ -64,12 +64,17 @@
       z-index: 2;
       pointer-events: auto;
     }
-    /* Force both sides' table wrappers to scroll (300px tall) */
-    .flip-card-front .table-scroll-wrapper,
-    .flip-card-back .table-scroll-wrapper {
-      max-height: 300px !important;
+    /* FRONT side: Force 300px scroll container */
+    .flip-card-front .table-scroll-wrapper {
+      height: 300px !important;
       overflow-y: auto !important;
       -webkit-overflow-scrolling: touch;
+    }
+    /* BACK side: Auto-size (no forced height) */
+    .flip-card-back .table-scroll-wrapper {
+      height: auto !important;
+      max-height: none !important;
+      overflow: visible !important;
     }
   </style>
 </head>
@@ -298,7 +303,6 @@
     });
     
     function isPayday() {
-      // Example: assume payday is every Friday (day 5)
       const today = new Date();
       return today.getDay() === 5;
     }
@@ -310,7 +314,6 @@
       }
     }
     
-    // Handler for the Edit button in Constant Income Section
     document.getElementById("edit-constant-income").addEventListener("click", function() {
       const newIncome = prompt("Enter your new constant take-home amount:");
       if (newIncome && !isNaN(parseFloat(newIncome))) {
@@ -319,15 +322,25 @@
       }
     });
     
-    // Attach click event to Fry container to toggle the slide-out panel
     document.getElementById('fry-toggle').addEventListener('click', function() {
       document.getElementById('income-slide-out').classList.toggle('open');
     });
     
-    // Example flip handler: toggle the flip class when the coin is clicked
+    // Flip handler: toggle the flip class when the coin is clicked
     document.getElementById("coin-flip").addEventListener("click", () => {
       document.getElementById("budget-flip-card").classList.toggle("flip");
+      // Toggle coin image
+      const coinImage = document.getElementById("coin-image");
+      if (coinImage.src.indexOf("coin-heads") !== -1) {
+        coinImage.src = "coin-tails.png";
+      } else {
+        coinImage.src = "coin-heads.png";
+      }
     });
+    
+    /* Remaining JS for expense/category handling, charts, etc.
+       (Omitted here for brevity – your existing code remains unchanged.)
+    */
   </script>
 </body>
 </html>
