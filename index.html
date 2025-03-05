@@ -16,12 +16,11 @@
   <link rel="stylesheet" href="style.css" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Inline Flip Card + Slide-Out Overrides -->
+  
+  <!-- Inline Flip-Card and Flip Overrides -->
   <style>
-    /* Flip Card Container */
+    /* Flip Card Container – note: no overflow hidden here */
     .flip-card {
-      /* Removed overflow: hidden; to avoid clipping on iOS */
       perspective: 1000px;
       position: relative;
       width: 100%;
@@ -34,8 +33,7 @@
       transition: transform 0.8s;
       transform-style: preserve-3d;
     }
-
-    /* FRONT and BACK sides */
+    /* Front & Back sides */
     .flip-card-front,
     .flip-card-back {
       position: absolute;
@@ -45,26 +43,19 @@
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
-
-    /* FRONT side active by default */
     .flip-card-front {
-      z-index: 2;             /* on top */
-      pointer-events: auto;   /* clickable */
+      z-index: 2;
+      pointer-events: auto;
     }
-
-    /* BACK side initially rotated and disabled */
     .flip-card-back {
       transform: rotateY(180deg);
       z-index: 1;
       pointer-events: none;
     }
-
-    /* When flipped, rotate the inner container */
+    /* When flipped, swap interaction */
     .flip-card.flip .flip-card-inner {
       transform: rotateY(180deg);
     }
-
-    /* Swap z-index and pointer-events so back is active, front is disabled */
     .flip-card.flip .flip-card-front {
       z-index: 1;
       pointer-events: none;
@@ -73,53 +64,15 @@
       z-index: 2;
       pointer-events: auto;
     }
-
-    /* Slide-out panel is pinned to the right, off-screen by default */
-    .slide-out {
-      position: fixed;
-      top: 0;
-      right: -320px;
-      width: 300px;
-      height: 100%;
-      background-color: var(--card-bg);
-      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
-      transition: right 0.3s ease;
-      z-index: 900;
-      padding: 20px;
-      overflow-y: auto;
-    }
-    .slide-out.open {
-      right: 0;
-    }
-
-    /* Coin container top-right */
-    .coin-container {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      width: 60px;
-      height: 60px;
-      cursor: pointer;
-      perspective: 1000px;
-      z-index: 1100;
-    }
-
-    /* Fry container below the coin */
-    .fry-container {
-      position: absolute;
-      top: 80px;
-      right: 10px;
-      z-index: 1100;
-      max-width: 120px;
-    }
-    .fry-container img {
-      width: 100%;
-      height: auto;
-      display: block;
+    /* Force both sides' table wrappers to scroll (300px tall) */
+    .flip-card-front .table-scroll-wrapper,
+    .flip-card-back .table-scroll-wrapper {
+      max-height: 300px !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch;
     }
   </style>
 </head>
-
 <body>
   <!-- Notifications -->
   <div id="notification" role="alert" aria-live="assertive"></div>
@@ -273,7 +226,7 @@
           </div>
         </main>
       </div>
-
+      
       <!-- BACK SIDE: Static Budget -->
       <div class="flip-card-back">
         <button id="toggle-manage-categories-back">Manage Categories</button>
@@ -316,9 +269,9 @@
           </div>
         </main>
       </div>
-    </div> <!-- flip-card-inner -->
-  </div> <!-- flip-card -->
-
+    </div> <!-- end flip-card-inner -->
+  </div> <!-- end flip-card -->
+  
   <!-- Firebase and Main Scripts -->
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-database-compat.js"></script>
@@ -369,6 +322,11 @@
     // Attach click event to Fry container to toggle the slide-out panel
     document.getElementById('fry-toggle').addEventListener('click', function() {
       document.getElementById('income-slide-out').classList.toggle('open');
+    });
+    
+    // Example flip handler: toggle the flip class when the coin is clicked
+    document.getElementById("coin-flip").addEventListener("click", () => {
+      document.getElementById("budget-flip-card").classList.toggle("flip");
     });
   </script>
 </body>
