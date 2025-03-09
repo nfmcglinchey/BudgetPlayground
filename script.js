@@ -509,10 +509,12 @@ function loadExpenses() {
     console.error("Expenses table not found");
     return;
   }
+
   const toggleButton = document.getElementById("toggle-expenses-button");
   if (toggleButton) {
     toggleButton.textContent = showAllExpenses ? "Show Newest 5" : "Show All";
   }
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = (today.getDay() - 5 + 7) % 7;
@@ -524,6 +526,7 @@ function loadExpenses() {
   if (expensesListener) {
     db.ref("expenses").off("value", expensesListener);
   }
+
   expensesListener = (snapshot) => {
     expensesTable.innerHTML = `
       <tr>
@@ -534,6 +537,7 @@ function loadExpenses() {
         <th>Action</th>
       </tr>
     `;
+    
     resetBudgetActuals();
     const selectedMonth = document.getElementById("filter-month")?.value;
     const selectedYear = document.getElementById("filter-year")?.value;
@@ -541,6 +545,11 @@ function loadExpenses() {
 
     snapshot.forEach(childSnapshot => {
       const expense = childSnapshot.val();
+
+      // **LOGGING ADDED IN THE RIGHT PLACE**
+      console.log("Raw Expense Date (From Firebase):", expense.date);
+      console.log("Parsed Date (Local Time):", new Date(expense.date).toLocaleString());
+
       const expenseDate = parseLocalDate(expense.date);
       const expenseMonth = (expenseDate.getMonth() + 1).toString();
       const expenseYear = expenseDate.getFullYear().toString();
@@ -566,137 +575,54 @@ function loadExpenses() {
 
     finalExpenses.forEach(exp => {
       const formattedDate = formatDate(exp.date);
-      if (isMobile()) {
-        const row = document.createElement("tr");
-        row.classList.add("expense-swipe");
-        const cell = document.createElement("td");
-        cell.colSpan = 5;
-        cell.style.position = "relative";
+      const row = document.createElement("tr");
 
-        const swipeActions = document.createElement("div");
-        swipeActions.classList.add("swipe-actions");
-        const editBtn = document.createElement("button");
-        editBtn.classList.add("swipe-edit");
-        editBtn.textContent = "Edit";
-        editBtn.addEventListener("click", () => {
-          editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
-        });
-        swipeActions.appendChild(editBtn);
+      const dateCell = document.createElement("td");
+      dateCell.textContent = formattedDate;
+      row.appendChild(dateCell);
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.classList.add("swipe-delete");
-        deleteBtn.textContent = "Delete";
-        deleteBtn.addEventListener("click", () => {
-          customConfirm("Swipe delete: Are you sure you want to delete this expense?")
-            .then(confirmed => {
-              if (confirmed) {
-                deleteExpense(exp.key);
-              }
-            });
-        });
-        swipeActions.appendChild(deleteBtn);
+      const categoryCell = document.createElement("td");
+      categoryCell.textContent = exp.category;
+      row.appendChild(categoryCell);
 
-        const swipeContent = document.createElement("div");
-        swipeContent.classList.add("swipe-content");
-        swipeContent.innerHTML = `
-          <div class="expense-details">
-            <span class="date">${formattedDate}</span>
-            <span class="category">${exp.category}</span>
-            <span class="description">${exp.description || "—"}</span>
-            <span class="amount">$${exp.amount.toFixed(2)}</span>
-          </div>
-        `;
-        cell.appendChild(swipeActions);
-        cell.appendChild(swipeContent);
-        row.appendChild(cell);
-        expensesTable.appendChild(row);
+      const descCell = document.createElement("td");
+      descCell.textContent = exp.description || "—";
+      row.appendChild(descCell);
 
-        let startX = 0, currentX = 0;
-        const threshold = 80;
-        const fullSwipeThreshold = -250;
+      const amountCell = document.createElement("td");
+      amountCell.textContent = `$${exp.amount.toFixed(2)}`;
+      row.appendChild(amountCell);
 
-        swipeContent.addEventListener("touchstart", function(e) {
-          startX = e.touches[0].clientX;
-          swipeContent.style.transition = "";
-        });
-        swipeContent.addEventListener("touchmove", function(e) {
-          currentX = e.touches[0].clientX;
-          let deltaX = currentX - startX;
-          if (deltaX < 0) {
-            swipeContent.style.transform = `translateX(${deltaX}px)`;
-          }
-        });
-        swipeContent.addEventListener("touchend", function() {
-          let deltaX = currentX - startX;
-          if (deltaX < fullSwipeThreshold) {
-            swipeContent.style.transition = "transform 0.3s ease";
-            swipeContent.style.transform = "translateX(-100%)";
-            customConfirm("Swipe delete: Are you sure you want to delete this expense?")
-              .then(confirmed => {
-                if (confirmed) {
-                  deleteExpense(exp.key);
-                } else {
-                  swipeContent.style.transition = "transform 0.3s ease";
-                  swipeContent.style.transform = "translateX(0)";
-                }
-              });
-          } else if (deltaX < -threshold) {
-            swipeContent.style.transition = "transform 0.3s ease";
-            swipeContent.style.transform = "translateX(-160px)";
-          } else {
-            swipeContent.style.transition = "transform 0.3s ease";
-            swipeContent.style.transform = "translateX(0)";
-          }
-        });
-      } else {
-        const row = document.createElement("tr");
-        row.classList.add("expense-swipe");
-        const dateCell = document.createElement("td");
-        dateCell.textContent = formattedDate;
-        row.appendChild(dateCell);
+      const actionCell = document.createElement("td");
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit";
+      editBtn.style.marginRight = "8px";
+      editBtn.addEventListener("click", () => {
+        editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
+      });
+      actionCell.appendChild(editBtn);
 
-        const categoryCell = document.createElement("td");
-        categoryCell.textContent = exp.category;
-        row.appendChild(categoryCell);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", () => {
+        customConfirm("Are you sure you want to delete this expense?")
+          .then(confirmed => {
+            if (confirmed) {
+              deleteExpense(exp.key);
+            }
+          });
+      });
+      actionCell.appendChild(deleteBtn);
+      row.appendChild(actionCell);
 
-        const descCell = document.createElement("td");
-        descCell.textContent = exp.description || "—";
-        row.appendChild(descCell);
-
-        const amountCell = document.createElement("td");
-        amountCell.textContent = `$${exp.amount.toFixed(2)}`;
-        row.appendChild(amountCell);
-
-        const actionCell = document.createElement("td");
-        const editBtn = document.createElement("button");
-        editBtn.textContent = "Edit";
-        editBtn.style.marginRight = "8px";
-        editBtn.addEventListener("click", () => {
-          editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
-        });
-        actionCell.appendChild(editBtn);
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "Delete";
-        deleteBtn.addEventListener("click", () => {
-          customConfirm("Are you sure you want to delete this expense?")
-            .then(confirmed => {
-              if (confirmed) {
-                deleteExpense(exp.key);
-              }
-            });
-        });
-        actionCell.appendChild(deleteBtn);
-        row.appendChild(actionCell);
-
-        expensesTable.appendChild(row);
-      }
+      expensesTable.appendChild(row);
     });
 
     updateTotalRow();
     updateChartDebounced();
     updatePieChart();
   };
+
   db.ref("expenses").on("value", expensesListener);
 }
 
