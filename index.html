@@ -278,9 +278,8 @@
   </div> <!-- end flip-card -->
   
   <!-- Firebase and Main Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-database-compat.js"></script>
-  <script src="script.js" defer></script>
+  <!-- Updated: Using Modular Firebase SDK instead of compat versions -->
+  <script type="module" src="script.js"></script>
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -325,8 +324,6 @@
     document.getElementById('fry-toggle').addEventListener('click', function() {
       document.getElementById('income-slide-out').classList.toggle('open');
     });
-    
-    /* The rest of your Firebase and expense/category JS remains unchanged */
   </script>
 </body>
 </html>
