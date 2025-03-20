@@ -470,8 +470,9 @@ async function addExpense() {
   }
 }
 
+// UPDATED: Use setDefaultDate to reset the date input using local formatting
 function resetExpenseForm() {
-  document.getElementById("expense-date").value = new Date().toISOString().slice(0,10);
+  setDefaultDate("expense-date");
   document.getElementById("expense-category").selectedIndex = 0;
   document.getElementById("expense-description").value = "";
   document.getElementById("expense-amount").value = "";
