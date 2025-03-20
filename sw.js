@@ -33,9 +33,14 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch event - Serve cached assets & handle offline requests
+// Updated Fetch event - Bypass cache for Firebase requests
 self.addEventListener('fetch', event => {
   if (event.request.method === 'GET') {
+    // Bypass cache for Firebase requests.
+    if (event.request.url.includes("firebaseio.com")) {
+      event.respondWith(fetch(event.request));
+      return;
+    }
     event.respondWith(
       caches.match(event.request)
         .then(response => response || fetch(event.request))
