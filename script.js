@@ -1,5 +1,3 @@
-// :contentReference[oaicite:1]{index=1}
-
 // Firebase Configuration and Initialization
 const firebaseConfig = {
   apiKey: "AIzaSyA6ZFSK7jPIkiEv47yl8q-O1jh8DNvOsiI",
@@ -39,6 +37,7 @@ function isMobile() {
   return ('ontouchstart' in window) || (window.innerWidth <= 768);
 }
 
+// Updated setDefaultDate function using local date formatting
 function setDefaultDate(selector) {
   const dateInput = document.getElementById(selector);
   if (!dateInput) {
@@ -46,7 +45,10 @@ function setDefaultDate(selector) {
     return;
   }
   const today = new Date();
-  dateInput.value = today.toISOString().slice(0, 10);
+  const year = today.getFullYear();
+  const month = ("0" + (today.getMonth() + 1)).slice(-2);
+  const day = ("0" + today.getDate()).slice(-2);
+  dateInput.value = `${year}-${month}-${day}`;
 }
 
 function formatDate(isoDate) {
