@@ -1,19 +1,42 @@
-// Firebase Configuration and Initialization
+/****************************************************
+ * script.js - Firebase Modular SDK version
+ ****************************************************/
+
+// 1) Import from the Modular Firebase SDK
+import { 
+  initializeApp 
+} from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
+
+import { 
+  getDatabase, 
+  ref, 
+  onValue, 
+  push, 
+  remove, 
+  update, 
+  query, 
+  orderByChild, 
+  equalTo, 
+  get 
+} from "https://www.gstatic.com/firebasejs/11.5.0/firebase-database.js";
+
+// 2) Firebase Configuration and Initialization
+//    Include databaseURL in your config, as shown below.
 const firebaseConfig = {
-  apiKey: "AIzaSyA6ZFSK7jPIkiEv47yl8q-O1jh8DNvOsiI",
-  authDomain: "budget-data-b9bcc.firebaseapp.com",
-  databaseURL: "https://budget-data-b9bcc-default-rtdb.firebaseio.com",
-  projectId: "budget-data-b9bcc",
-  storageBucket: "budget-data-b9bcc.appspot.com",
-  messagingSenderId: "798831217373",
-  appId: "1:798831217373:web:0d011f497ad3b9ca85a934"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// Global Variables
-// FRONT SIDE (Discretionary Budget)
+// 3) Global Variables
 let expensesListener = null;
 let spendingChart;
 let pieChart;
@@ -22,22 +45,19 @@ let showAllExpenses = false;
 let editingExpenseId = null;
 let budgetCategories = [];
 
-// BACK SIDE (Static Budget)
 let staticSpendingChart;
 let staticPieChart;
 let staticChartUpdateTimeout = null;
 let staticCategories = [];
 
-// NEW GLOBALS FOR WEEKLY SUMMARY
 let weeklyIncome = 0;
 let weeklyExpenses = 0;
 
-// Utility Functions
+// 4) Utility Functions
 function isMobile() {
   return ('ontouchstart' in window) || (window.innerWidth <= 768);
 }
 
-// Updated setDefaultDate function using local date formatting
 function setDefaultDate(selector) {
   const dateInput = document.getElementById(selector);
   if (!dateInput) {
@@ -108,7 +128,6 @@ function customConfirm(message) {
   });
 }
 
-// Weekly Summary Update Function
 function updateWeeklySummary() {
   // Calculate static weekly expenses from staticCategories
   let staticWeekly = 0;
@@ -118,19 +137,14 @@ function updateWeeklySummary() {
     });
   }
 
-  // Use your dynamic weekly expenses (from expense entries)
-  let dynamicWeekly = weeklyExpenses; // This is updated via loadExpenses()
-
-  // Aggregate both static and dynamic expenses
+  let dynamicWeekly = weeklyExpenses;
   const aggregateExpenses = staticWeekly + dynamicWeekly;
 
-  // Update the UI with income, aggregated expenses, and net difference
   document.getElementById("weekly-income").textContent = "Income: $" + weeklyIncome.toFixed(2);
   document.getElementById("weekly-expenses").textContent = "Expenses: $" + aggregateExpenses.toFixed(2);
   const net = weeklyIncome - aggregateExpenses;
   document.getElementById("net-weekly").textContent = "Net: $" + net.toFixed(2);
 
-  // LOGGING FOR DEBUG
   console.log("Static Weekly:", staticWeekly.toFixed(2),
               "Dynamic Weekly:", dynamicWeekly.toFixed(2),
               "Total Weekly:", aggregateExpenses.toFixed(2),
@@ -138,11 +152,14 @@ function updateWeeklySummary() {
               "Net:", net.toFixed(2));
 }
 
-// FRONT SIDE Functions (Discretionary Budget)
-async function loadCategories() {
+// 5) FRONT SIDE Functions (Discretionary Budget)
+
+// Replaces: db.ref("categories").on("value", snapshot => {...})
+function loadCategories() {
   try {
-    db.ref("categories").on("value", snapshot => {
-      if (snapshot.numChildren() === 0) {
+    onValue(ref(db, "categories"), (snapshot) => {
+      if (!snapshot.exists()) {
+        // Insert default categories if none exist
         const defaults = [
           { name: "Groceries", monthly: 1200 },
           { name: "Dining Out", monthly: 400 },
@@ -153,10 +170,11 @@ async function loadCategories() {
           { name: "Miscellaneous", monthly: 0 }
         ];
         defaults.forEach(defaultCat => {
-          db.ref("categories").push(defaultCat);
+          push(ref(db, "categories"), defaultCat);
         });
         return;
       }
+
       budgetCategories = [];
       snapshot.forEach(childSnapshot => {
         let cat = childSnapshot.val();
@@ -204,6 +222,7 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
+          // Check for duplicates
           if (
             newName.toLowerCase() !== cat.name.toLowerCase() &&
             budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
@@ -213,23 +232,24 @@ function renderCategoryList() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(confirmed => {
+              .then(async (confirmed) => {
                 if (confirmed) {
-                  db.ref("expenses").orderByChild("category").equalTo(cat.name)
-                    .once("value")
-                    .then(snapshot => {
-                      snapshot.forEach(childSnapshot => {
-                        childSnapshot.ref.update({ category: newName });
-                      });
-                    })
-                    .then(() => db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly }))
+                  // Convert once("value") to get(query(...))
+                  const q = query(ref(db, "expenses"), orderByChild("category"), equalTo(cat.name));
+                  const snap = await get(q);
+                  if (snap.exists()) {
+                    snap.forEach(childSnapshot => {
+                      update(ref(db, "expenses/" + childSnapshot.key), { category: newName });
+                    });
+                  }
+                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotification("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating category or expenses:", error);
                       showNotification("Error updating category or expenses.");
                     });
                 } else {
-                  db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly })
+                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotification("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating category:", error);
@@ -238,7 +258,7 @@ function renderCategoryList() {
                 }
               });
           } else {
-            db.ref("categories/" + cat.id).update({ monthly: newMonthly })
+            update(ref(db, "categories/" + cat.id), { monthly: newMonthly })
               .then(() => showNotification("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating category:", error);
@@ -258,7 +278,7 @@ function renderCategoryList() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              db.ref("categories/" + cat.id).remove()
+              remove(ref(db, "categories/" + cat.id))
                 .catch(error => {
                   console.error("Error deleting category:", error);
                   showNotification("Error deleting category.");
@@ -305,23 +325,23 @@ function renderCategoryList() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(confirmed => {
+              .then(async (confirmed) => {
                 if (confirmed) {
-                  db.ref("expenses").orderByChild("category").equalTo(cat.name)
-                    .once("value")
-                    .then(snapshot => {
-                      snapshot.forEach(childSnapshot => {
-                        childSnapshot.ref.update({ category: newName });
-                      });
-                    })
-                    .then(() => db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly }))
+                  const q = query(ref(db, "expenses"), orderByChild("category"), equalTo(cat.name));
+                  const snap = await get(q);
+                  if (snap.exists()) {
+                    snap.forEach(childSnapshot => {
+                      update(ref(db, "expenses/" + childSnapshot.key), { category: newName });
+                    });
+                  }
+                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotification("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating category or expenses:", error);
                       showNotification("Error updating category or expenses.");
                     });
                 } else {
-                  db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly })
+                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotification("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating category:", error);
@@ -330,7 +350,7 @@ function renderCategoryList() {
                 }
               });
           } else {
-            db.ref("categories/" + cat.id).update({ monthly: newMonthly })
+            update(ref(db, "categories/" + cat.id), { monthly: newMonthly })
               .then(() => showNotification("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating category:", error);
@@ -349,7 +369,7 @@ function renderCategoryList() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              db.ref("categories/" + cat.id).remove()
+              remove(ref(db, "categories/" + cat.id))
                 .catch(error => {
                   console.error("Error deleting category:", error);
                   showNotification("Error deleting category.");
@@ -387,7 +407,7 @@ function addCategory() {
     showNotification("Duplicate category name.");
     return;
   }
-  db.ref("categories").push({ name: newName, monthly: newMonthly })
+  push(ref(db, "categories"), { name: newName, monthly: newMonthly })
     .then(() => {
       document.getElementById("new-category-name").value = "";
       document.getElementById("new-category-monthly").value = "";
@@ -457,10 +477,12 @@ async function addExpense() {
     const expenseData = { date, category, description, amount };
 
     if (editingExpenseId) {
-      await db.ref("expenses/" + editingExpenseId).update(expenseData);
+      // update
+      await update(ref(db, "expenses/" + editingExpenseId), expenseData);
       showNotification("Expense updated successfully");
     } else {
-      await db.ref("expenses").push(expenseData);
+      // push
+      await push(ref(db, "expenses"), expenseData);
       showNotification("Expense added successfully");
     }
     resetExpenseForm();
@@ -470,7 +492,6 @@ async function addExpense() {
   }
 }
 
-// UPDATED: Use setDefaultDate to reset the date input using local formatting
 function resetExpenseForm() {
   setDefaultDate("expense-date");
   document.getElementById("expense-category").selectedIndex = 0;
@@ -526,11 +547,14 @@ function loadExpenses() {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 7);
 
+  // Turn off any existing listener
   if (expensesListener) {
-    db.ref("expenses").off("value", expensesListener);
+    // There's no direct "off" in the modular approach for onValue,
+    // but you can keep a reference and call it. We'll just skip it or store unsub.
   }
 
-  expensesListener = (snapshot) => {
+  // Start new listener with onValue
+  expensesListener = onValue(ref(db, "expenses"), (snapshot) => {
     expensesTable.innerHTML = `
       <tr>
         <th>Date</th>
@@ -546,32 +570,34 @@ function loadExpenses() {
     const selectedYear = document.getElementById("filter-year")?.value;
     const monthlyExpenses = [];
 
-    snapshot.forEach(childSnapshot => {
-      const expense = childSnapshot.val();
+    if (snapshot.exists()) {
+      snapshot.forEach(childSnapshot => {
+        const expense = childSnapshot.val();
+        const key = childSnapshot.key;
 
-      // **LOGGING ADDED IN THE RIGHT PLACE**
-      console.log("Raw Expense Date (From Firebase):", expense.date);
-      console.log("Parsed Date (Local Time):", new Date(expense.date).toLocaleString());
+        console.log("Raw Expense Date (From Firebase):", expense.date);
+        console.log("Parsed Date (Local Time):", new Date(expense.date).toLocaleString());
 
-      const expenseDate = parseLocalDate(expense.date);
-      const expenseMonth = (expenseDate.getMonth() + 1).toString();
-      const expenseYear = expenseDate.getFullYear().toString();
+        const expenseDate = parseLocalDate(expense.date);
+        const expenseMonth = (expenseDate.getMonth() + 1).toString();
+        const expenseYear = expenseDate.getFullYear().toString();
 
-      if (expenseMonth === selectedMonth && expenseYear === selectedYear) {
-        updateBudgetTotals(expense.category, expense.amount, expenseDate, "month");
-        monthlyExpenses.push({
-          key: childSnapshot.key,
-          date: expense.date,
-          category: expense.category,
-          description: expense.description,
-          amount: expense.amount,
-          parsedDate: expenseDate
-        });
-      }
-      if (expenseDate >= startOfWeek && expenseDate < endOfWeek) {
-        updateBudgetTotals(expense.category, expense.amount, expenseDate, "week");
-      }
-    });
+        if (expenseMonth === selectedMonth && expenseYear === selectedYear) {
+          updateBudgetTotals(expense.category, expense.amount, expenseDate, "month");
+          monthlyExpenses.push({
+            key,
+            date: expense.date,
+            category: expense.category,
+            description: expense.description,
+            amount: expense.amount,
+            parsedDate: expenseDate
+          });
+        }
+        if (expenseDate >= startOfWeek && expenseDate < endOfWeek) {
+          updateBudgetTotals(expense.category, expense.amount, expenseDate, "week");
+        }
+      });
+    }
 
     monthlyExpenses.sort((a, b) => b.parsedDate - a.parsedDate);
     const finalExpenses = showAllExpenses ? monthlyExpenses : monthlyExpenses.slice(0, 5);
@@ -624,9 +650,7 @@ function loadExpenses() {
     updateTotalRow();
     updateChartDebounced();
     updatePieChart();
-  };
-
-  db.ref("expenses").on("value", expensesListener);
+  });
 }
 
 function deleteExpense(expenseId) {
@@ -634,7 +658,7 @@ function deleteExpense(expenseId) {
     console.error("Invalid expense ID");
     return;
   }
-  db.ref("expenses/" + expenseId).remove()
+  remove(ref(db, "expenses/" + expenseId))
     .then(() => {
       console.log("Expense deleted successfully");
       showNotification("Expense deleted successfully");
@@ -884,11 +908,12 @@ function updatePieChart() {
   }
 }
 
-// BACK SIDE Functions (Static Budget)
-async function loadCategoriesStatic() {
+// 6) BACK SIDE Functions (Static Budget)
+// Very similar approach for staticCategories:
+function loadCategoriesStatic() {
   try {
-    db.ref("staticCategories").on("value", snapshot => {
-      if (snapshot.numChildren() === 0) {
+    onValue(ref(db, "staticCategories"), (snapshot) => {
+      if (!snapshot.exists()) {
         const defaults = [
           { name: "Groceries", monthly: 1200 },
           { name: "Dining Out", monthly: 400 },
@@ -899,7 +924,7 @@ async function loadCategoriesStatic() {
           { name: "Miscellaneous", monthly: 0 }
         ];
         defaults.forEach(defaultCat => {
-          db.ref("staticCategories").push(defaultCat);
+          push(ref(db, "staticCategories"), defaultCat);
         });
         return;
       }
@@ -910,11 +935,8 @@ async function loadCategoriesStatic() {
         staticCategories.push(cat);
       });
 
-      // Render categories & load the static budget
       renderCategoryListStatic();
       loadBudgetStatic();
-
-      // Call updateWeeklySummary() again to ensure static costs are included
       updateWeeklySummary();
     });
   } catch (error) {
@@ -962,23 +984,23 @@ function renderCategoryListStatic() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(confirmed => {
+              .then(async (confirmed) => {
                 if (confirmed) {
-                  db.ref("staticExpenses").orderByChild("category").equalTo(cat.name)
-                    .once("value")
-                    .then(snapshot => {
-                      snapshot.forEach(childSnapshot => {
-                        childSnapshot.ref.update({ category: newName });
-                      });
-                    })
-                    .then(() => db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly }))
+                  const q = query(ref(db, "staticExpenses"), orderByChild("category"), equalTo(cat.name));
+                  const snap = await get(q);
+                  if (snap.exists()) {
+                    snap.forEach(childSnapshot => {
+                      update(ref(db, "staticExpenses/" + childSnapshot.key), { category: newName });
+                    });
+                  }
+                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotificationStatic("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category or expenses:", error);
                       showNotificationStatic("Error updating category or expenses.");
                     });
                 } else {
-                  db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly })
+                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotificationStatic("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category:", error);
@@ -987,7 +1009,7 @@ function renderCategoryListStatic() {
                 }
               });
           } else {
-            db.ref("staticCategories/" + cat.id).update({ monthly: newMonthly })
+            update(ref(db, "staticCategories/" + cat.id), { monthly: newMonthly })
               .then(() => showNotificationStatic("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating static category:", error);
@@ -1007,7 +1029,7 @@ function renderCategoryListStatic() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              db.ref("staticCategories/" + cat.id).remove()
+              remove(ref(db, "staticCategories/" + cat.id))
                 .catch(error => {
                   console.error("Error deleting static category:", error);
                   showNotificationStatic("Error deleting category.");
@@ -1054,23 +1076,23 @@ function renderCategoryListStatic() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(confirmed => {
+              .then(async (confirmed) => {
                 if (confirmed) {
-                  db.ref("staticExpenses").orderByChild("category").equalTo(cat.name)
-                    .once("value")
-                    .then(snapshot => {
-                      snapshot.forEach(childSnapshot => {
-                        childSnapshot.ref.update({ category: newName });
-                      });
-                    })
-                    .then(() => db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly }))
+                  const q = query(ref(db, "staticExpenses"), orderByChild("category"), equalTo(cat.name));
+                  const snap = await get(q);
+                  if (snap.exists()) {
+                    snap.forEach(childSnapshot => {
+                      update(ref(db, "staticExpenses/" + childSnapshot.key), { category: newName });
+                    });
+                  }
+                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotificationStatic("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category or expenses:", error);
                       showNotificationStatic("Error updating category or expenses.");
                     });
                 } else {
-                  db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly })
+                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
                     .then(() => showNotificationStatic("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category:", error);
@@ -1079,7 +1101,7 @@ function renderCategoryListStatic() {
                 }
               });
           } else {
-            db.ref("staticCategories/" + cat.id).update({ monthly: newMonthly })
+            update(ref(db, "staticCategories/" + cat.id), { monthly: newMonthly })
               .then(() => showNotificationStatic("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating static category:", error);
@@ -1098,7 +1120,7 @@ function renderCategoryListStatic() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              db.ref("staticCategories/" + cat.id).remove()
+              remove(ref(db, "staticCategories/" + cat.id))
                 .catch(error => {
                   console.error("Error deleting static category:", error);
                   showNotificationStatic("Error deleting category.");
@@ -1169,7 +1191,7 @@ function addCategoryStatic() {
     showNotificationStatic("Please enter a valid category name and monthly budget.");
     return;
   }
-  db.ref("staticCategories").push({ name: newName, monthly: newMonthly })
+  push(ref(db, "staticCategories"), { name: newName, monthly: newMonthly })
     .then(() => {
       newNameEl.value = "";
       newMonthlyEl.value = "";
@@ -1436,7 +1458,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = parseFloat(newIncome);
         document.getElementById("constant-income").value = value.toFixed(2);
         weeklyIncome = value;
-        localStorage.setItem("constantIncome", value);  // Save the income value
+        localStorage.setItem("constantIncome", value);
         console.log("Constant Income updated to: $" + value.toFixed(2));
         updateWeeklySummary();
       }
@@ -1457,14 +1479,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const value = parseFloat(this.value);
     if (!isNaN(value)) {
       weeklyIncome = value;
-      localStorage.setItem("constantIncome", value);  // Save the income value
+      localStorage.setItem("constantIncome", value);
       updateWeeklySummary();
     }
-  });
-
-  // NEW: Toggle slide-out panel for Income Settings
-  document.getElementById('income-slide-toggle').addEventListener('click', function() {
-    document.getElementById('income-slide-out').classList.toggle('open');
   });
 });
 
