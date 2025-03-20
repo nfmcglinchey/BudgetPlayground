@@ -16,65 +16,69 @@
   <link rel="stylesheet" href="style.css" />
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <!-- Inline Flip-Card CSS (ensure this appears after other conflicting styles) -->
+  <!-- Inline extra flip-card styles (optional) -->
   <style>
-    /* Flip Card Styles */
     .flip-card {
       perspective: 1000px;
-      position: relative;
-      width: 100%;
-      max-width: 960px;
-      margin: 0 auto;
-      /* Do not use overflow:hidden to avoid clipping */
     }
     .flip-card-inner {
       position: relative;
-      width: 100%;
       transition: transform 0.8s;
       transform-style: preserve-3d;
+    }
+    .flip-card.flip .flip-card-inner {
+      transform: rotateY(180deg);
     }
     .flip-card-front,
     .flip-card-back {
       position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
-    .flip-card-front {
-      z-index: 2;
-      pointer-events: auto;
-    }
     .flip-card-back {
       transform: rotateY(180deg);
-      z-index: 1;
-      pointer-events: none;
     }
-    /* Flip when .flip is toggled */
-    .flip-card.flip .flip-card-inner {
-      transform: rotateY(180deg) !important;
+    /* Updated slide-out so it’s fully hidden off-screen */
+    .slide-out {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      width: 300px;
+      height: 100%;
+      background-color: var(--card-bg);
+      box-shadow: -2px 0 8px rgba(0, 0, 0, 0.2);
+      transition: right 0.3s ease;
+      z-index: 900;
+      padding: 20px;
+      overflow-y: auto;
     }
-    .flip-card.flip .flip-card-front {
-      z-index: 1;
-      pointer-events: none;
+    .slide-out.open {
+      right: 0;
     }
-    .flip-card.flip .flip-card-back {
-      z-index: 2;
-      pointer-events: auto;
+    /* Position coin top-right */
+    .coin-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      cursor: pointer;
+      perspective: 1000px;
+      z-index: 1100;
     }
-    /* Front side: force table container scroll at 300px */
-    .flip-card-front .table-scroll-wrapper {
-      height: 300px !important;
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch;
+    /* Position Fry below the coin so they don’t overlap */
+    .fry-container {
+      position: absolute;
+      top: 80px;
+      right: 10px;
+      z-index: 1100;
+      max-width: 120px;
     }
-    /* Back side: allow full table (no forced height) */
-    .flip-card-back .table-scroll-wrapper {
-      height: auto !important;
-      max-height: none !important;
-      overflow: visible !important;
+    .fry-container img {
+      width: 100%;
+      height: auto;
+      display: block;
     }
   </style>
 </head>
@@ -231,7 +235,6 @@
           </div>
         </main>
       </div>
-      
       <!-- BACK SIDE: Static Budget -->
       <div class="flip-card-back">
         <button id="toggle-manage-categories-back">Manage Categories</button>
@@ -274,12 +277,13 @@
           </div>
         </main>
       </div>
-    </div> <!-- end flip-card-inner -->
-  </div> <!-- end flip-card -->
-  
+    </div>
+  </div>
+
   <!-- Firebase and Main Scripts -->
-  <!-- Updated: Using Modular Firebase SDK instead of compat versions -->
-  <script type="module" src="script.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.3.0/firebase-database-compat.js"></script>
+  <script src="script.js" defer></script>
   <script>
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -288,7 +292,7 @@
         .catch(error => console.log('Service Worker registration failed:', error));
     }
     
-    // Take-Home Income Logic
+    // New Take-Home Income JavaScript
     document.getElementById("income-variability").addEventListener("change", function() {
       const mode = this.value;
       if (mode === "constant") {
@@ -302,6 +306,7 @@
     });
     
     function isPayday() {
+      // Example: assume payday is every Friday (day 5)
       const today = new Date();
       return today.getDay() === 5;
     }
@@ -313,6 +318,7 @@
       }
     }
     
+    // Handler for the Edit button in Constant Income Section
     document.getElementById("edit-constant-income").addEventListener("click", function() {
       const newIncome = prompt("Enter your new constant take-home amount:");
       if (newIncome && !isNaN(parseFloat(newIncome))) {
@@ -321,6 +327,7 @@
       }
     });
     
+    // Attach click event to Fry container to toggle the slide-out panel
     document.getElementById('fry-toggle').addEventListener('click', function() {
       document.getElementById('income-slide-out').classList.toggle('open');
     });
