@@ -1,42 +1,19 @@
-/****************************************************
- * script.js - Firebase Modular SDK version
- ****************************************************/
-
-// 1) Import from the Modular Firebase SDK
-import { 
-  initializeApp 
-} from "https://www.gstatic.com/firebasejs/11.5.0/firebase-app.js";
-
-import { 
-  getDatabase, 
-  ref, 
-  onValue, 
-  push, 
-  remove, 
-  update, 
-  query, 
-  orderByChild, 
-  equalTo, 
-  get 
-} from "https://www.gstatic.com/firebasejs/11.5.0/firebase-database.js";
-
-// 2) Firebase Configuration and Initialization
-//    Include databaseURL in your config, as shown below.
+// Firebase Configuration and Initialization
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDZY3fLWVQUho5_kr1cySBS3hAENfCjK-A",
+  authDomain: "budget-ca6cc.firebaseapp.com",
+  databaseURL: "https://budget-ca6cc-default-rtdb.firebaseio.com",
+  projectId: "budget-ca6cc",
+  storageBucket: "budget-ca6cc.firebasestorage.app",
+  messagingSenderId: "511560833155",
+  appId: "1:511560833155:web:06974e4d2afc68decda3b6"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// 3) Global Variables
+// Global Variables
+// FRONT SIDE (Discretionary Budget)
 let expensesListener = null;
 let spendingChart;
 let pieChart;
@@ -45,15 +22,17 @@ let showAllExpenses = false;
 let editingExpenseId = null;
 let budgetCategories = [];
 
+// BACK SIDE (Static Budget)
 let staticSpendingChart;
 let staticPieChart;
 let staticChartUpdateTimeout = null;
 let staticCategories = [];
 
+// NEW GLOBALS FOR WEEKLY SUMMARY
 let weeklyIncome = 0;
 let weeklyExpenses = 0;
 
-// 4) Utility Functions
+// Utility Functions
 function isMobile() {
   return ('ontouchstart' in window) || (window.innerWidth <= 768);
 }
@@ -65,10 +44,7 @@ function setDefaultDate(selector) {
     return;
   }
   const today = new Date();
-  const year = today.getFullYear();
-  const month = ("0" + (today.getMonth() + 1)).slice(-2);
-  const day = ("0" + today.getDate()).slice(-2);
-  dateInput.value = `${year}-${month}-${day}`;
+  dateInput.value = today.toISOString().slice(0, 10);
 }
 
 function formatDate(isoDate) {
@@ -128,38 +104,29 @@ function customConfirm(message) {
   });
 }
 
+// Weekly Summary Update Function
 function updateWeeklySummary() {
-  // Calculate static weekly expenses from staticCategories
+  // Calculate static weekly expenses based on staticCategories
   let staticWeekly = 0;
   if (staticCategories && staticCategories.length > 0) {
     staticCategories.forEach(cat => {
       staticWeekly += parseFloat(cat.monthly) * 12 / 52;
     });
   }
-
-  let dynamicWeekly = weeklyExpenses;
-  const aggregateExpenses = staticWeekly + dynamicWeekly;
-
+  // Combine dynamic and static weekly expenses
+  const combinedWeeklyExpenses = weeklyExpenses + staticWeekly;
+  
   document.getElementById("weekly-income").textContent = "Income: $" + weeklyIncome.toFixed(2);
-  document.getElementById("weekly-expenses").textContent = "Expenses: $" + aggregateExpenses.toFixed(2);
-  const net = weeklyIncome - aggregateExpenses;
+  document.getElementById("weekly-expenses").textContent = "Expenses: $" + combinedWeeklyExpenses.toFixed(2);
+  const net = weeklyIncome - combinedWeeklyExpenses;
   document.getElementById("net-weekly").textContent = "Net: $" + net.toFixed(2);
-
-  console.log("Static Weekly:", staticWeekly.toFixed(2),
-              "Dynamic Weekly:", dynamicWeekly.toFixed(2),
-              "Total Weekly:", aggregateExpenses.toFixed(2),
-              "Income:", weeklyIncome.toFixed(2),
-              "Net:", net.toFixed(2));
 }
 
-// 5) FRONT SIDE Functions (Discretionary Budget)
-
-// Replaces: db.ref("categories").on("value", snapshot => {...})
-function loadCategories() {
+// FRONT SIDE Functions (Discretionary Budget)
+async function loadCategories() {
   try {
-    onValue(ref(db, "categories"), (snapshot) => {
-      if (!snapshot.exists()) {
-        // Insert default categories if none exist
+    db.ref("categories").on("value", snapshot => {
+      if (snapshot.numChildren() === 0) {
         const defaults = [
           { name: "Groceries", monthly: 1200 },
           { name: "Dining Out", monthly: 400 },
@@ -170,11 +137,10 @@ function loadCategories() {
           { name: "Miscellaneous", monthly: 0 }
         ];
         defaults.forEach(defaultCat => {
-          push(ref(db, "categories"), defaultCat);
+          db.ref("categories").push(defaultCat);
         });
         return;
       }
-
       budgetCategories = [];
       snapshot.forEach(childSnapshot => {
         let cat = childSnapshot.val();
@@ -222,7 +188,6 @@ function renderCategoryList() {
         const newName = prompt("Edit category name:", cat.name);
         const newMonthly = parseFloat(prompt("Edit monthly budget:", cat.monthly));
         if (newName && !isNaN(newMonthly)) {
-          // Check for duplicates
           if (
             newName.toLowerCase() !== cat.name.toLowerCase() &&
             budgetCategories.some(c => c.name.toLowerCase() === newName.toLowerCase())
@@ -232,24 +197,23 @@ function renderCategoryList() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(async (confirmed) => {
+              .then(confirmed => {
                 if (confirmed) {
-                  // Convert once("value") to get(query(...))
-                  const q = query(ref(db, "expenses"), orderByChild("category"), equalTo(cat.name));
-                  const snap = await get(q);
-                  if (snap.exists()) {
-                    snap.forEach(childSnapshot => {
-                      update(ref(db, "expenses/" + childSnapshot.key), { category: newName });
-                    });
-                  }
-                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("expenses").orderByChild("category").equalTo(cat.name)
+                    .once("value")
+                    .then(snapshot => {
+                      snapshot.forEach(childSnapshot => {
+                        childSnapshot.ref.update({ category: newName });
+                      });
+                    })
+                    .then(() => db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly }))
                     .then(() => showNotification("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating category or expenses:", error);
                       showNotification("Error updating category or expenses.");
                     });
                 } else {
-                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly })
                     .then(() => showNotification("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating category:", error);
@@ -258,7 +222,7 @@ function renderCategoryList() {
                 }
               });
           } else {
-            update(ref(db, "categories/" + cat.id), { monthly: newMonthly })
+            db.ref("categories/" + cat.id).update({ monthly: newMonthly })
               .then(() => showNotification("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating category:", error);
@@ -278,7 +242,7 @@ function renderCategoryList() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              remove(ref(db, "categories/" + cat.id))
+              db.ref("categories/" + cat.id).remove()
                 .catch(error => {
                   console.error("Error deleting category:", error);
                   showNotification("Error deleting category.");
@@ -325,23 +289,23 @@ function renderCategoryList() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(async (confirmed) => {
+              .then(confirmed => {
                 if (confirmed) {
-                  const q = query(ref(db, "expenses"), orderByChild("category"), equalTo(cat.name));
-                  const snap = await get(q);
-                  if (snap.exists()) {
-                    snap.forEach(childSnapshot => {
-                      update(ref(db, "expenses/" + childSnapshot.key), { category: newName });
-                    });
-                  }
-                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("expenses").orderByChild("category").equalTo(cat.name)
+                    .once("value")
+                    .then(snapshot => {
+                      snapshot.forEach(childSnapshot => {
+                        childSnapshot.ref.update({ category: newName });
+                      });
+                    })
+                    .then(() => db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly }))
                     .then(() => showNotification("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating category or expenses:", error);
                       showNotification("Error updating category or expenses.");
                     });
                 } else {
-                  update(ref(db, "categories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("categories/" + cat.id).update({ name: newName, monthly: newMonthly })
                     .then(() => showNotification("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating category:", error);
@@ -350,7 +314,7 @@ function renderCategoryList() {
                 }
               });
           } else {
-            update(ref(db, "categories/" + cat.id), { monthly: newMonthly })
+            db.ref("categories/" + cat.id).update({ monthly: newMonthly })
               .then(() => showNotification("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating category:", error);
@@ -369,7 +333,7 @@ function renderCategoryList() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              remove(ref(db, "categories/" + cat.id))
+              db.ref("categories/" + cat.id).remove()
                 .catch(error => {
                   console.error("Error deleting category:", error);
                   showNotification("Error deleting category.");
@@ -407,7 +371,7 @@ function addCategory() {
     showNotification("Duplicate category name.");
     return;
   }
-  push(ref(db, "categories"), { name: newName, monthly: newMonthly })
+  db.ref("categories").push({ name: newName, monthly: newMonthly })
     .then(() => {
       document.getElementById("new-category-name").value = "";
       document.getElementById("new-category-monthly").value = "";
@@ -477,12 +441,10 @@ async function addExpense() {
     const expenseData = { date, category, description, amount };
 
     if (editingExpenseId) {
-      // update
-      await update(ref(db, "expenses/" + editingExpenseId), expenseData);
+      await db.ref("expenses/" + editingExpenseId).update(expenseData);
       showNotification("Expense updated successfully");
     } else {
-      // push
-      await push(ref(db, "expenses"), expenseData);
+      await db.ref("expenses").push(expenseData);
       showNotification("Expense added successfully");
     }
     resetExpenseForm();
@@ -493,7 +455,7 @@ async function addExpense() {
 }
 
 function resetExpenseForm() {
-  setDefaultDate("expense-date");
+  document.getElementById("expense-date").value = new Date().toISOString().slice(0,10);
   document.getElementById("expense-category").selectedIndex = 0;
   document.getElementById("expense-description").value = "";
   document.getElementById("expense-amount").value = "";
@@ -533,12 +495,10 @@ function loadExpenses() {
     console.error("Expenses table not found");
     return;
   }
-
   const toggleButton = document.getElementById("toggle-expenses-button");
   if (toggleButton) {
     toggleButton.textContent = showAllExpenses ? "Show Newest 5" : "Show All";
   }
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const diff = (today.getDay() - 5 + 7) % 7;
@@ -547,14 +507,10 @@ function loadExpenses() {
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 7);
 
-  // Turn off any existing listener
   if (expensesListener) {
-    // There's no direct "off" in the modular approach for onValue,
-    // but you can keep a reference and call it. We'll just skip it or store unsub.
+    db.ref("expenses").off("value", expensesListener);
   }
-
-  // Start new listener with onValue
-  expensesListener = onValue(ref(db, "expenses"), (snapshot) => {
+  expensesListener = (snapshot) => {
     expensesTable.innerHTML = `
       <tr>
         <th>Date</th>
@@ -564,93 +520,170 @@ function loadExpenses() {
         <th>Action</th>
       </tr>
     `;
-    
     resetBudgetActuals();
     const selectedMonth = document.getElementById("filter-month")?.value;
     const selectedYear = document.getElementById("filter-year")?.value;
     const monthlyExpenses = [];
 
-    if (snapshot.exists()) {
-      snapshot.forEach(childSnapshot => {
-        const expense = childSnapshot.val();
-        const key = childSnapshot.key;
+    snapshot.forEach(childSnapshot => {
+      const expense = childSnapshot.val();
+      const expenseDate = parseLocalDate(expense.date);
+      const expenseMonth = (expenseDate.getMonth() + 1).toString();
+      const expenseYear = expenseDate.getFullYear().toString();
 
-        console.log("Raw Expense Date (From Firebase):", expense.date);
-        console.log("Parsed Date (Local Time):", new Date(expense.date).toLocaleString());
-
-        const expenseDate = parseLocalDate(expense.date);
-        const expenseMonth = (expenseDate.getMonth() + 1).toString();
-        const expenseYear = expenseDate.getFullYear().toString();
-
-        if (expenseMonth === selectedMonth && expenseYear === selectedYear) {
-          updateBudgetTotals(expense.category, expense.amount, expenseDate, "month");
-          monthlyExpenses.push({
-            key,
-            date: expense.date,
-            category: expense.category,
-            description: expense.description,
-            amount: expense.amount,
-            parsedDate: expenseDate
-          });
-        }
-        if (expenseDate >= startOfWeek && expenseDate < endOfWeek) {
-          updateBudgetTotals(expense.category, expense.amount, expenseDate, "week");
-        }
-      });
-    }
+      if (expenseMonth === selectedMonth && expenseYear === selectedYear) {
+        updateBudgetTotals(expense.category, expense.amount, expenseDate, "month");
+        monthlyExpenses.push({
+          key: childSnapshot.key,
+          date: expense.date,
+          category: expense.category,
+          description: expense.description,
+          amount: expense.amount,
+          parsedDate: expenseDate
+        });
+      }
+      if (expenseDate >= startOfWeek && expenseDate < endOfWeek) {
+        updateBudgetTotals(expense.category, expense.amount, expenseDate, "week");
+      }
+    });
 
     monthlyExpenses.sort((a, b) => b.parsedDate - a.parsedDate);
     const finalExpenses = showAllExpenses ? monthlyExpenses : monthlyExpenses.slice(0, 5);
 
     finalExpenses.forEach(exp => {
       const formattedDate = formatDate(exp.date);
-      const row = document.createElement("tr");
+      if (isMobile()) {
+        const row = document.createElement("tr");
+        row.classList.add("expense-swipe");
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.style.position = "relative";
 
-      const dateCell = document.createElement("td");
-      dateCell.textContent = formattedDate;
-      row.appendChild(dateCell);
+        const swipeActions = document.createElement("div");
+        swipeActions.classList.add("swipe-actions");
+        const editBtn = document.createElement("button");
+        editBtn.classList.add("swipe-edit");
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", () => {
+          editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
+        });
+        swipeActions.appendChild(editBtn);
 
-      const categoryCell = document.createElement("td");
-      categoryCell.textContent = exp.category;
-      row.appendChild(categoryCell);
+        const deleteBtn = document.createElement("button");
+        deleteBtn.classList.add("swipe-delete");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => {
+          customConfirm("Swipe delete: Are you sure you want to delete this expense?")
+            .then(confirmed => {
+              if (confirmed) {
+                deleteExpense(exp.key);
+              }
+            });
+        });
+        swipeActions.appendChild(deleteBtn);
 
-      const descCell = document.createElement("td");
-      descCell.textContent = exp.description || "—";
-      row.appendChild(descCell);
+        const swipeContent = document.createElement("div");
+        swipeContent.classList.add("swipe-content");
+        swipeContent.innerHTML = `
+          <div class="expense-details">
+            <span class="date">${formattedDate}</span>
+            <span class="category">${exp.category}</span>
+            <span class="description">${exp.description || "—"}</span>
+            <span class="amount">$${exp.amount.toFixed(2)}</span>
+          </div>
+        `;
+        cell.appendChild(swipeActions);
+        cell.appendChild(swipeContent);
+        row.appendChild(cell);
+        expensesTable.appendChild(row);
 
-      const amountCell = document.createElement("td");
-      amountCell.textContent = `$${exp.amount.toFixed(2)}`;
-      row.appendChild(amountCell);
+        let startX = 0, currentX = 0;
+        const threshold = 80;
+        const fullSwipeThreshold = -250;
 
-      const actionCell = document.createElement("td");
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.style.marginRight = "8px";
-      editBtn.addEventListener("click", () => {
-        editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
-      });
-      actionCell.appendChild(editBtn);
+        swipeContent.addEventListener("touchstart", function(e) {
+          startX = e.touches[0].clientX;
+          swipeContent.style.transition = "";
+        });
+        swipeContent.addEventListener("touchmove", function(e) {
+          currentX = e.touches[0].clientX;
+          let deltaX = currentX - startX;
+          if (deltaX < 0) {
+            swipeContent.style.transform = `translateX(${deltaX}px)`;
+          }
+        });
+        swipeContent.addEventListener("touchend", function() {
+          let deltaX = currentX - startX;
+          if (deltaX < fullSwipeThreshold) {
+            swipeContent.style.transition = "transform 0.3s ease";
+            swipeContent.style.transform = "translateX(-100%)";
+            customConfirm("Swipe delete: Are you sure you want to delete this expense?")
+              .then(confirmed => {
+                if (confirmed) {
+                  deleteExpense(exp.key);
+                } else {
+                  swipeContent.style.transition = "transform 0.3s ease";
+                  swipeContent.style.transform = "translateX(0)";
+                }
+              });
+          } else if (deltaX < -threshold) {
+            swipeContent.style.transition = "transform 0.3s ease";
+            swipeContent.style.transform = "translateX(-160px)";
+          } else {
+            swipeContent.style.transition = "transform 0.3s ease";
+            swipeContent.style.transform = "translateX(0)";
+          }
+        });
+      } else {
+        const row = document.createElement("tr");
+        row.classList.add("expense-swipe");
+        const dateCell = document.createElement("td");
+        dateCell.textContent = formattedDate;
+        row.appendChild(dateCell);
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", () => {
-        customConfirm("Are you sure you want to delete this expense?")
-          .then(confirmed => {
-            if (confirmed) {
-              deleteExpense(exp.key);
-            }
-          });
-      });
-      actionCell.appendChild(deleteBtn);
-      row.appendChild(actionCell);
+        const categoryCell = document.createElement("td");
+        categoryCell.textContent = exp.category;
+        row.appendChild(categoryCell);
 
-      expensesTable.appendChild(row);
+        const descCell = document.createElement("td");
+        descCell.textContent = exp.description || "—";
+        row.appendChild(descCell);
+
+        const amountCell = document.createElement("td");
+        amountCell.textContent = `$${exp.amount.toFixed(2)}`;
+        row.appendChild(amountCell);
+
+        const actionCell = document.createElement("td");
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.style.marginRight = "8px";
+        editBtn.addEventListener("click", () => {
+          editExpense(exp.key, exp.date, exp.category, exp.description, exp.amount);
+        });
+        actionCell.appendChild(editBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => {
+          customConfirm("Are you sure you want to delete this expense?")
+            .then(confirmed => {
+              if (confirmed) {
+                deleteExpense(exp.key);
+              }
+            });
+        });
+        actionCell.appendChild(deleteBtn);
+        row.appendChild(actionCell);
+
+        expensesTable.appendChild(row);
+      }
     });
 
     updateTotalRow();
     updateChartDebounced();
     updatePieChart();
-  });
+  };
+  db.ref("expenses").on("value", expensesListener);
 }
 
 function deleteExpense(expenseId) {
@@ -658,7 +691,7 @@ function deleteExpense(expenseId) {
     console.error("Invalid expense ID");
     return;
   }
-  remove(ref(db, "expenses/" + expenseId))
+  db.ref("expenses/" + expenseId).remove()
     .then(() => {
       console.log("Expense deleted successfully");
       showNotification("Expense deleted successfully");
@@ -701,7 +734,7 @@ function updateBudgetTotals(category, amount, expenseDate, type) {
         applyBudgetColors(actualMonthCell, newMonthTotal, monthlyBudget);
 
         if (newMonthTotal > monthlyBudget) {
-          actualMonthCell.innerHTML = `$${newMonthTotal.toFixed(2)} <span class="warning-icon" title="Over Budget!">⚠️</span>`;
+          actualMonthCell.innerHTML = `$${newMonthTotal.toFixed(2)} <span class="warning-icon" title="Over Budget!">⚠</span>`;
         } else {
           actualMonthCell.textContent = `$${newMonthTotal.toFixed(2)}`;
         }
@@ -715,7 +748,7 @@ function updateBudgetTotals(category, amount, expenseDate, type) {
         applyBudgetColors(actualWeekCell, newWeekTotal, weeklyBudget);
 
         if (newWeekTotal > weeklyBudget) {
-          actualWeekCell.innerHTML = `$${newWeekTotal.toFixed(2)} <span class="warning-icon" title="Over Budget!">⚠️</span>`;
+          actualWeekCell.innerHTML = `$${newWeekTotal.toFixed(2)} <span class="warning-icon" title="Over Budget!">⚠</span>`;
         } else {
           actualWeekCell.textContent = `$${newWeekTotal.toFixed(2)}`;
         }
@@ -908,12 +941,11 @@ function updatePieChart() {
   }
 }
 
-// 6) BACK SIDE Functions (Static Budget)
-// Very similar approach for staticCategories:
-function loadCategoriesStatic() {
+// BACK SIDE Functions (Static Budget)
+async function loadCategoriesStatic() {
   try {
-    onValue(ref(db, "staticCategories"), (snapshot) => {
-      if (!snapshot.exists()) {
+    db.ref("staticCategories").on("value", snapshot => {
+      if (snapshot.numChildren() === 0) {
         const defaults = [
           { name: "Groceries", monthly: 1200 },
           { name: "Dining Out", monthly: 400 },
@@ -924,7 +956,7 @@ function loadCategoriesStatic() {
           { name: "Miscellaneous", monthly: 0 }
         ];
         defaults.forEach(defaultCat => {
-          push(ref(db, "staticCategories"), defaultCat);
+          db.ref("staticCategories").push(defaultCat);
         });
         return;
       }
@@ -934,10 +966,8 @@ function loadCategoriesStatic() {
         cat.id = childSnapshot.key;
         staticCategories.push(cat);
       });
-
       renderCategoryListStatic();
       loadBudgetStatic();
-      updateWeeklySummary();
     });
   } catch (error) {
     console.error("Error loading static categories:", error);
@@ -984,23 +1014,23 @@ function renderCategoryListStatic() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(async (confirmed) => {
+              .then(confirmed => {
                 if (confirmed) {
-                  const q = query(ref(db, "staticExpenses"), orderByChild("category"), equalTo(cat.name));
-                  const snap = await get(q);
-                  if (snap.exists()) {
-                    snap.forEach(childSnapshot => {
-                      update(ref(db, "staticExpenses/" + childSnapshot.key), { category: newName });
-                    });
-                  }
-                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("staticExpenses").orderByChild("category").equalTo(cat.name)
+                    .once("value")
+                    .then(snapshot => {
+                      snapshot.forEach(childSnapshot => {
+                        childSnapshot.ref.update({ category: newName });
+                      });
+                    })
+                    .then(() => db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly }))
                     .then(() => showNotificationStatic("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category or expenses:", error);
                       showNotificationStatic("Error updating category or expenses.");
                     });
                 } else {
-                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly })
                     .then(() => showNotificationStatic("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category:", error);
@@ -1009,7 +1039,7 @@ function renderCategoryListStatic() {
                 }
               });
           } else {
-            update(ref(db, "staticCategories/" + cat.id), { monthly: newMonthly })
+            db.ref("staticCategories/" + cat.id).update({ monthly: newMonthly })
               .then(() => showNotificationStatic("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating static category:", error);
@@ -1029,7 +1059,7 @@ function renderCategoryListStatic() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              remove(ref(db, "staticCategories/" + cat.id))
+              db.ref("staticCategories/" + cat.id).remove()
                 .catch(error => {
                   console.error("Error deleting static category:", error);
                   showNotificationStatic("Error deleting category.");
@@ -1076,23 +1106,23 @@ function renderCategoryListStatic() {
           }
           if (newName.toLowerCase() !== cat.name.toLowerCase()) {
             customConfirm("Would you like to update all previous expenses under this category?")
-              .then(async (confirmed) => {
+              .then(confirmed => {
                 if (confirmed) {
-                  const q = query(ref(db, "staticExpenses"), orderByChild("category"), equalTo(cat.name));
-                  const snap = await get(q);
-                  if (snap.exists()) {
-                    snap.forEach(childSnapshot => {
-                      update(ref(db, "staticExpenses/" + childSnapshot.key), { category: newName });
-                    });
-                  }
-                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("staticExpenses").orderByChild("category").equalTo(cat.name)
+                    .once("value")
+                    .then(snapshot => {
+                      snapshot.forEach(childSnapshot => {
+                        childSnapshot.ref.update({ category: newName });
+                      });
+                    })
+                    .then(() => db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly }))
                     .then(() => showNotificationStatic("Category and related expenses updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category or expenses:", error);
                       showNotificationStatic("Error updating category or expenses.");
                     });
                 } else {
-                  update(ref(db, "staticCategories/" + cat.id), { name: newName, monthly: newMonthly })
+                  db.ref("staticCategories/" + cat.id).update({ name: newName, monthly: newMonthly })
                     .then(() => showNotificationStatic("Category updated successfully."))
                     .catch(error => {
                       console.error("Error updating static category:", error);
@@ -1101,7 +1131,7 @@ function renderCategoryListStatic() {
                 }
               });
           } else {
-            update(ref(db, "staticCategories/" + cat.id), { monthly: newMonthly })
+            db.ref("staticCategories/" + cat.id).update({ monthly: newMonthly })
               .then(() => showNotificationStatic("Category updated successfully."))
               .catch(error => {
                 console.error("Error updating static category:", error);
@@ -1120,7 +1150,7 @@ function renderCategoryListStatic() {
         customConfirm("Delete this category?")
           .then(confirmed => {
             if (confirmed) {
-              remove(ref(db, "staticCategories/" + cat.id))
+              db.ref("staticCategories/" + cat.id).remove()
                 .catch(error => {
                   console.error("Error deleting static category:", error);
                   showNotificationStatic("Error deleting category.");
@@ -1191,7 +1221,7 @@ function addCategoryStatic() {
     showNotificationStatic("Please enter a valid category name and monthly budget.");
     return;
   }
-  push(ref(db, "staticCategories"), { name: newName, monthly: newMonthly })
+  db.ref("staticCategories").push({ name: newName, monthly: newMonthly })
     .then(() => {
       newNameEl.value = "";
       newMonthlyEl.value = "";
@@ -1433,7 +1463,7 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeChartStatic();
   initializePieChartStatic();
   loadBudgetStatic();
-
+  
   // New Take-Home Income Initialization
   const incomeVariability = document.getElementById("income-variability");
   if (incomeVariability) {
@@ -1449,7 +1479,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   }
-
+  
   const editConstantIncomeBtn = document.getElementById("edit-constant-income");
   if (editConstantIncomeBtn) {
     editConstantIncomeBtn.addEventListener("click", function() {
@@ -1458,20 +1488,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const value = parseFloat(newIncome);
         document.getElementById("constant-income").value = value.toFixed(2);
         weeklyIncome = value;
-        localStorage.setItem("constantIncome", value);
         console.log("Constant Income updated to: $" + value.toFixed(2));
         updateWeeklySummary();
       }
     });
-  }
-
-  // Load constant income if stored
-  const storedIncome = localStorage.getItem("constantIncome");
-  if (storedIncome) {
-    const incomeValue = parseFloat(storedIncome);
-    document.getElementById("constant-income").value = incomeValue.toFixed(2);
-    weeklyIncome = incomeValue;
-    updateWeeklySummary();
   }
 
   // Direct update of income when the input value changes
@@ -1479,9 +1499,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const value = parseFloat(this.value);
     if (!isNaN(value)) {
       weeklyIncome = value;
-      localStorage.setItem("constantIncome", value);
       updateWeeklySummary();
     }
+  });
+
+  // NEW: Toggle slide-out panel for Income Settings
+  document.getElementById('income-slide-toggle').addEventListener('click', function() {
+    document.getElementById('income-slide-out').classList.toggle('open');
   });
 });
 
